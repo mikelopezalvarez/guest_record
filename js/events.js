@@ -1,9 +1,20 @@
 
-
+var search_limit_rows = 10; //Search limit rows
 
 function init_event(){
 
 	load_event_list();
+
+  //Init search
+  $("#btn_search").click(function(){
+
+    load_event_list();
+    
+  });
+
+  
+
+
 
 	
 
@@ -13,69 +24,99 @@ function init_event(){
 
 function load_event_list(){
 
-	var rows = [
-	    [1, "Asamblea Anual", 167, "11-23-2016"],
-	    [2, "Junta de Delegados", 145, "11-24-2016"],
-	    [3, "Asamblea Trimestral", 130, "11-11-2016"]
-	];
+  $.ajax({
+    type: "POST",
+    url: 'php/actions.php',
+    dataType : 'JSON',
+    data: { 
+      action: 'get_events', 
+      search: (($("#txt_search").val()) ? $("#txt_search").val() : -1 ),
+      limit_rows: search_limit_rows
+    },
+    success: function(response){
 
-	var qty = rows.length;
-	var htm = '<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">';
-	for(var i = 0; i < qty; i++){
-		htm += '<div class="panel panel-default">'+
-           '<div class="panel-heading" role="tab" id="headingOne">' +
-              '<h4 class="panel-title">' +
-                '<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse'+rows[i][0]+'" aria-expanded="true" aria-controls="collapseOne" style="text-decoration: none;">'+
-                  rows[i][1] +
-                '</a>' +
-                '<div class="btn-group pull-right" data-toggle="buttons" style="position: relative; top: -2px;">' +
-                  '<label class="btn btn-success btn-xs">' +
-                     'Display the form' +
-                  '</label>' +
-                  '<label class="btn btn-default btn-xs">' +
-                     '<span>attended: <span class="badge">'+rows[i][2]+'</span></span>' +
-                  '</label>' +
-                  
-                  '<label class="btn btn-default btn-xs">' +
-                   '<span class="glyphicon glyphicon-signal" aria-hidden="true"></span>' +
-                  '</label>' +
-                  '<label class="btn btn-default btn-xs">' +
-                    '<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>' +
-                 ' </label>' +
-                  '<label class="btn btn-default btn-xs">' +
-                    '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>' +
-                  '</label>' +
-                 
-                '</div>' +
+      //Quantity of Rows
+    	var qty = response.length;
+      if(qty > 0){
+      	var htm = '<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">';
+      	for(var i = 0; i < qty; i++){
+      		htm += '<div class="panel panel-default">'+
+                 '<div class="panel-heading" role="tab" id="headingOne">' +
+                    '<h4 class="panel-title">' +
+                      '<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse'+response[i]["event_id"]+'" aria-expanded="true" aria-controls="collapseOne" style="text-decoration: none;">'+
+                        response[i]["event_name"] +
+                      '</a>' +
+                      '<div class="btn-group pull-right" data-toggle="buttons" style="position: relative; top: -2px;">' +
+                        '<label class="btn btn-success btn-xs">' +
+                           'Display the form' +
+                        '</label>' +
+                        '<label class="btn btn-default btn-xs">' +
+                           '<span>attended: <span class="badge">789</span></span>' +
+                        '</label>' +
+                        
+                        '<label class="btn btn-default btn-xs">' +
+                         '<span class="glyphicon glyphicon-signal" aria-hidden="true"></span>' +
+                        '</label>' +
+                        '<label class="btn btn-default btn-xs">' +
+                          '<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>' +
+                       ' </label>' +
+                        '<label class="btn btn-default btn-xs">' +
+                          '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>' +
+                        '</label>' +
+                       
+                      '</div>' +
+                     
+                    '</h4>' +
+                 ' </div>' +
+                  '<div id="collapse'+response[i]["event_id"]+'" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">' +
+                    '<div class="panel-body">' + response[i]["event_desc"] +
+                    '<br><small><strong>Created Date: </strong>' + response[i]["created_date"] + '</small>' +
+                    '</div>' +
+                  '</div>' +
+                '</div>';
+
                
-              '</h4>' +
-           ' </div>' +
-            '<div id="collapse'+rows[i][0]+'" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">' +
-              '<div class="panel-body">' +
-                'Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably havent heard of them accusamus labore sustainable VHS.'+
-              '</div>' +
-            '</div>' +
-          '</div>';
-	}
+      	}
 
-	htm += '</div>';
+          if(qty > 9){
+            htm+= '<br><div class="row"><div class="col-md-2 col-md-offset-5">'+
+            '<div class="btn-group btn-group-xs" role="group" aria-label="Extra-small button group">'+ 
+              '<button type="button" class="btn btn-default" id="btn_more">More result</button>'+
+            '</div></div></div>';
+          }
 
-	$("#general-content").html(htm);
+      	htm += '</div>';
+      }else{
+        htm = '<div class="alert alert-info" role="alert">No Record found</div>';
+      }
+
+    	$("#general-content").html(htm);
 
 
-  program_events();
+      program_events();
+   }
+  });
 
 }
 
 
 
 function program_events(){
-
+  
+  //Init add event dialog
   $("#add_event").click(function(){
 
     init_ass_event_dialog();
     
   });
+
+  //Init more result
+  $("#btn_more").click(function(){
+    search_limit_rows = parseInt(search_limit_rows) + 10;
+    load_event_list();
+    
+  });
+  
 
 }
 
@@ -88,18 +129,18 @@ function init_ass_event_dialog(){
 
     $(".modal-title").text("Create Event")
 
-    var form = '<form id="form_event">'+
+    var form = '<form id="form_add_event">'+
       '<div class="form-group">'+
-        '<label for="">Title</label>'+
-        '<input type="text" class="validate[required] form-control" id="" placeholder="Title">'+
+        '<label for="">Name</label>'+
+        '<input type="text" class="validate[required] form-control" id="txt_event_name" placeholder="Name of Event">'+
       '</div>'+
       '<div class="form-group">'+
         '<label for="">Description</label>'+
-        '<textarea class="validate[required] form-control" rows="3"></textarea>'+
+        '<textarea class="validate[required] form-control" rows="3" id="txt_event_desc"></textarea>'+
       '</div>'+
       '<div class="form-group">'+
         '<label for="">List</label>'+
-        '<select class="form-control">'+
+        '<select class="form-control" id="ddl_lists">'+
           '<option>Choose the List</option>'+
           '<option>2</option>'+
           '<option>3</option>'+
@@ -115,6 +156,6 @@ function init_ass_event_dialog(){
 
     $(".modal-body").html(form);
 
-    $("#form_event").validationEngine();
+    $("#form_add_event").validationEngine();
 
 }
