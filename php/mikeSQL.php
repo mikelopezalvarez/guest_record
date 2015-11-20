@@ -224,6 +224,7 @@ class mikeSQL{
 		if($json > 0){
 			echo json_encode(array('success'=> true)); 
 		}
+		$this->last_id = $this->mysqli->insert_id;
 	} 
 
 	public function _del($sql, $json = 1){

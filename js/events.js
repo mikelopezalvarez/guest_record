@@ -1,6 +1,14 @@
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Global Variables List
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 var search_limit_rows = 10; //Search limit rows
 
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Init Event Page
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function init_event(){
 
 	load_event_list();
@@ -12,16 +20,19 @@ function init_event(){
     
   });
 
-  
+   //Init add event dialog
+  $("#add_event").click(function(){
 
-
-
-	
+    init_add_event_dialog();
+    
+  });
 
 }
 
 
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Load Event into Content
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function load_event_list(){
 
   $.ajax({
@@ -55,7 +66,7 @@ function load_event_list(){
                         '</label>' +
                         
                         '<label class="btn btn-default btn-xs">' +
-                         '<span class="glyphicon glyphicon-signal" aria-hidden="true"></span>' +
+                         '<span class="glyphicon glyphicon-stats" aria-hidden="true"></span>' +
                         '</label>' +
                         '<label class="btn btn-default btn-xs">' +
                           '<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>' +
@@ -100,15 +111,12 @@ function load_event_list(){
 }
 
 
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Init Program Events
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function program_events(){
   
-  //Init add event dialog
-  $("#add_event").click(function(){
-
-    init_ass_event_dialog();
-    
-  });
+ 
 
   //Init more result
   $("#btn_more").click(function(){
@@ -120,15 +128,17 @@ function program_events(){
 
 }
 
-
-function init_ass_event_dialog(){
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Init Form of Add Event into Dialog
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function init_add_event_dialog(){
+  //Open dialog
   $('#myModal').modal({
       keyboard: false
     });
-
-    $(".modal-title").text("Create Event")
-
+    //Dialog title
+    $(".modal-title").html('<img src="img/icons/calendar.png" width="50"> Create Event')
+    //Create form
     var form = '<form id="form_add_event">'+
       '<div class="form-group">'+
         '<label for="">Name</label>'+
@@ -140,12 +150,8 @@ function init_ass_event_dialog(){
       '</div>'+
       '<div class="form-group">'+
         '<label for="">List</label>'+
-        '<select class="form-control" id="ddl_lists">'+
+        '<select class="validate[required] form-control" id="ddl_lists">'+
           '<option>Choose the List</option>'+
-          '<option>2</option>'+
-          '<option>3</option>'+
-          '<option>4</option>'+
-          '<option>5</option>'+
         '</select>'+
       '</div>'+
       '<button type="submit" class="btn btn-default">Create</button>'+
@@ -153,9 +159,83 @@ function init_ass_event_dialog(){
     
 
    
-
+    //Load dialog wiht form
     $(".modal-body").html(form);
 
+    //Load ddl_lists
+    load_ddl_list();
+
+    //Init Validation Engine
     $("#form_add_event").validationEngine();
 
+    //When submit add event
+    $("#form_add_event").submit(function(event){
+      //Prevent Default
+      event.preventDefault();
+      //Call add event function
+      add_event();
+    });
+
+
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Load DDL of List
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function load_ddl_list(){
+   //Send params for add event
+    $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action: 'get_all_list'
+        },
+        success: function(response){
+          //Quantity list
+          var qty = response.length;
+          //Load ddl
+          for (var i = 0; i < qty; i++){
+            $('#ddl_lists').append($('<option>', {
+                value: response[i]['list_id'],
+                text: response[i]['list_name']
+            }));
+          }
+        }
+    });
+
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+When Add Event Form is Submit
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function add_event(){
+  //Get form status
+  var status = $("#form_add_event").validationEngine('validate');
+
+  if(status == true){
+    //Send params to add event
+    $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action: 'add_event', 
+          event_name: $("#txt_event_name").val(),
+          event_desc: $("#txt_event_desc").val(),
+          list_id: $("#ddl_lists").val()
+        },
+        success: function(response){
+          if(response.success){
+            //Close dialog
+            $('#myModal').modal('hide');
+            //Reload event list
+            load_event_list();
+          }
+        }
+      });
+
+  }
+}
+
+
