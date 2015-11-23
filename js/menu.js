@@ -7,7 +7,7 @@ function init_menu(e){
             '<li id="menu_events" class="menu_link" rel="events"><a href="events.html"><span class="glyphicon glyphicon-calendar" aria-hidden="true"></span> Events</a></li>' +
             '<li id="menu_lists" class="menu_link" rel="lists"><a href="lists.html"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Lists</a></li>' +
             '<li id="menu_analytics" class="menu_link" rel="analytics"><a href="#"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> Analytics</a></li>' +
-            '<li id="menu_setting" class="menu_link" rel="setting"><a href="setting.html"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Setting & Account</a></li>' +
+            '<li id="menu_setting" class="menu_link" rel="setting"><a href="setting.html"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Setting</a></li>' +
             '<li id="menu_logout" class="menu_link" rel="logout"><a href="#"><span class="glyphicon glyphicon-off" aria-hidden="true"></span> Log out</a></li>';
 	//Append Menu
 	$("#menu").append(menu);

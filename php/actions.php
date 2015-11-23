@@ -6,7 +6,10 @@
 		"test", 						/*0*/
 		"get_events",					/*1*/
 		"add_event",					/*2*/
-		"get_all_list"					/*3*/
+		"get_all_list",					/*3*/
+		"del_event",					/*4*/
+		"get_event_info",				/*5*/
+		"edit_event"					/*6*/
 		
 		);
 			
@@ -78,6 +81,26 @@
 						$guest->qry("SELECT list_id, list_name FROM lists WHERE active = '1'");
 
 					break;
+				case 4:
+
+						$guest = new mikeSQL();
+						$guest->_del("DELETE FROM events WHERE event_id = '$event_id'");
+
+					break;
+				case 5:
+
+						$guest = new mikeSQL();
+						$guest->qry("SELECT e.event_name, e.event_desc, l.list_id, l.list_name FROM events e LEFT JOIN event_list el ON el.event_id = e.event_id LEFT JOIN lists l ON l.list_id = el.list_id WHERE e.event_id = '$event_id'");
+
+					break;
+				case 6:
+
+						$guest = new mikeSQL();
+						$values = array("event_name"=> $event_name, "event_desc"=> $event_desc);
+						$guest->update("events", $values, 'event_id', $event_id);
+
+					break;
+
 
 				}
 

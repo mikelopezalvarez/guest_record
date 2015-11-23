@@ -111,7 +111,7 @@ class mikeSQL{
 
 	}
 
-	public function update($table, $values, $id){
+	public function update($table, $values, $field_id, $id){
 
 		$this->table = $table;
 
@@ -126,12 +126,13 @@ class mikeSQL{
 
 		}
 
-		$sql = "UPDATE ". $this->table. " SET " . $set_fields. " WHERE id='".$id."'";
+		$sql = "UPDATE ". $this->table. " SET " . $set_fields. " WHERE ".$field_id."='".$id."'";
 
 		if (!$this->mysqli->query($sql)) {
 		    printf("Errormessage: %s\n", $this->mysqli->error);
 		}else{
 			$this->ok = true;
+			echo json_encode(array('success'=> true)); 
 		}
 
 	}

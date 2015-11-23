@@ -3,7 +3,7 @@
 Global Variables List
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 var search_limit_rows = 10; //Search limit rows
-
+var event_info = null; //Get event info Obj
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
@@ -68,10 +68,10 @@ function load_event_list(){
                         '<label class="btn btn-default btn-xs">' +
                          '<span class="glyphicon glyphicon-stats" aria-hidden="true"></span>' +
                         '</label>' +
-                        '<label class="btn btn-default btn-xs">' +
+                        '<label class="btn btn-default btn-xs btn_edit_event" rel="'+response[i]["event_id"]+'">' +
                           '<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>' +
                        ' </label>' +
-                        '<label class="btn btn-default btn-xs">' +
+                        '<label class="btn btn-default btn-xs btn_delete_event" rel="'+response[i]["event_id"]+'">' +
                           '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>' +
                         '</label>' +
                        
@@ -123,6 +123,16 @@ function program_events(){
     search_limit_rows = parseInt(search_limit_rows) + 10;
     load_event_list();
     
+  });
+
+  //Init delete event
+  $(".btn_delete_event").click(function(){
+    delete_event($(this).attr("rel"));
+  });
+
+  //Init edit event
+  $(".btn_edit_event").click(function(){
+    get_info_to_edit_event($(this).attr("rel"));
   });
   
 
@@ -224,6 +234,142 @@ function add_event(){
           event_name: $("#txt_event_name").val(),
           event_desc: $("#txt_event_desc").val(),
           list_id: $("#ddl_lists").val()
+        },
+        success: function(response){
+          if(response.success){
+            //Close dialog
+            $('#myModal').modal('hide');
+            //Reload event list
+            load_event_list();
+          }
+        }
+      });
+
+  }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Delete Event by Event ID
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function delete_event(e){
+  var del = confirm("Do you want delete this event?");
+    
+    if (del == true) {
+        
+      //Send params to add event
+      $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action: 'del_event', 
+          event_id: e
+        },
+        success: function(response){
+          if(response.success){
+          
+            //Reload event list
+            load_event_list();
+
+          }
+        }
+      });
+
+    }
+}
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Get Event Info to Edit It
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function get_info_to_edit_event(e){
+        
+      //Send params to add event
+      $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action: 'get_event_info', 
+          event_id: e
+        },
+        success: function(response){
+          //Storage event info obj
+          event_info = response;
+          console.log(response)
+          //Init edit event dialog
+          init_edit_event_dialog(e);
+        }
+      });
+
+}
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Init Form of Add Event into Dialog
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function init_edit_event_dialog(e){
+  //Open dialog
+  $('#myModal').modal({
+      keyboard: false
+    });
+    //Dialog title
+    $(".modal-title").html('<img src="img/icons/calendar.png" width="50"> Edit Event')
+    //Create form
+    var form = '<form id="form_edit_event">'+
+      '<div class="form-group">'+
+        '<label for="">Name</label>'+
+        '<input type="text" class="validate[required] form-control" id="txt_event_name" placeholder="Name of Event" value="'+event_info[0]["event_name"]+'">'+
+      '</div>'+
+      '<div class="form-group">'+
+        '<label for="">Description</label>'+
+        '<textarea class="validate[required] form-control" rows="3" id="txt_event_desc">'+event_info[0]["event_desc"]+'</textarea>'+
+      '</div>'+
+      '<div class="form-group">'+
+        '<label for="">List</label>'+
+        '<input class="form-control" id="disabledInput" type="text" placeholder="" value="'+event_info[0]["list_name"]+'" rel="'+event_info[0]["list_id"]+'"  disabled>'+
+      '</div>'+
+      '<button type="submit" class="btn btn-default">Edit</button>'+
+    '</form>';
+    
+
+   
+    //Load dialog wiht form
+    $(".modal-body").html(form);
+
+
+    //Init Validation Engine
+    $("#form_edit_event").validationEngine();
+
+    //When submit add event
+    $("#form_edit_event").submit(function(event){
+      //Prevent Default
+      event.preventDefault();
+      //Call add event function
+      edit_event(e);
+    });
+
+
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Edit Event Info
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function edit_event(e){
+  //Get form status
+  var status = $("#form_edit_event").validationEngine('validate');
+
+  if(status == true){
+    //Send params to add event
+    $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action: 'edit_event', 
+          event_name: $("#txt_event_name").val(),
+          event_desc: $("#txt_event_desc").val(),
+          event_id: e
         },
         success: function(response){
           if(response.success){
