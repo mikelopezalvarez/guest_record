@@ -9,7 +9,9 @@
 		"get_all_list",					/*3*/
 		"del_event",					/*4*/
 		"get_event_info",				/*5*/
-		"edit_event"					/*6*/
+		"edit_event",					/*6*/
+		"get_lists",					/*7*/
+		"create_list"					/*8*/
 		
 		);
 			
@@ -43,9 +45,13 @@
 					//echo json_encode($arr,JSON_UNESCAPED_UNICODE);
 
 					
-						echo $action;
-						echo '<br>';
-						echo $test;
+						//echo $action;
+						//echo '<br>';
+						//echo $test;
+
+				echo $_FILES['file']['name'];
+
+
 						
 
 				
@@ -99,6 +105,141 @@
 						$values = array("event_name"=> $event_name, "event_desc"=> $event_desc);
 						$guest->update("events", $values, 'event_id', $event_id);
 
+					break;
+				case 7:
+
+						$guest = new mikeSQL();
+						if ($search == -1){
+							$guest->qry("SELECT list_id, list_name, list_table_name, list_total, created_date FROM lists LIMIT ".$limit_rows);
+						}else{
+							$guest->qry("SELECT list_id, list_name, list_table_name, list_total, created_date FROM lists WHERE list_name LIKE '%$search%' LIMIT ".$limit_rows);
+						}
+
+					break;
+				case 8:
+						
+
+						//1. VERIFY IF TABLE EXIST
+						$guest = new mikeSQL();
+						$guest->exist_table($list_table_name);
+
+						if($guest->ok == true){
+							echo json_encode(array('success'=> false, 'error'=> 'The table name already exist.')); 
+						}else{
+
+							// 2. UPLOAD CSV
+							if ($_FILES["file"]["size"] > 500000) {
+							    echo json_encode(array('success'=> false, 'error'=> 'The file size exceed the limit.')); 
+							}else{
+
+								$allowed =  array('csv');
+								$filename = $_FILES['file']['name'];
+								$ext = pathinfo($filename, PATHINFO_EXTENSION);
+								if(!in_array($ext,$allowed) ) {
+								    echo json_encode(array('success'=> false, 'error'=> 'The file type is incorrect.'));
+								}else{
+									//RENAME FILE
+									$temp = explode(".", $filename);
+									$newfilename = round(microtime(true)) . '.' . end($temp);
+									//UPLOAD FILE INTO SERVER
+									move_uploaded_file($_FILES['file']['tmp_name'], '../csv/'.$newfilename);
+					
+									// 3. VALIDATE IF FILE IS CSV
+									$csvArr = array();
+									$path = "../csv/".$newfilename;
+									
+									if (($handle = fopen($path, "r")) !== FALSE) {
+									    $key = 0; // Set the array key.
+									    while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+									        $count = count($data); //get the total keys in row
+									        //insert data to our array
+									        for ($i=0; $i < $count; $i++) {
+									            $csvArr[$key][$i] = $data[$i];
+									        }
+									        $key++;
+									    }
+									    fclose($handle);//close file handle
+									}
+									
+									
+									//VARIABLES TO VALIDATE CSV COLUMNS & FIELDS
+									$countCol = count($csvArr[0]); //COLUMN FIRST ROW
+									$countRow = count($csvArr); //TOTAL ROW
+									$countErr = 0; //INIT ERROR COUNT
+									$col = null;
+
+									//SEARCHING ERROR
+									for ($i = 0; $i < $countRow; $i++){
+										$currentCol = count($csvArr[$i]); //CURRENT COLUMN COUNT
+										//VALIDATE FIRST COLUMN WITH EACH ROW-COLUMN 
+										if($currentCol != $countCol){
+											$countErr = $countErr + 1;
+										}
+									}
+									//VERIFY ERROR COUNT
+									if($countErr > 0){
+										//Send JSON...
+									}else{
+										//print_r($csvArr);
+
+										// sql to create table
+										$sql = "CREATE TABLE list_". $list_table_name ." ( row_id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, ";
+
+										for($i = 0; $i < $countCol; $i++){
+											if($i < $countCol - 1){
+												$sql .= str_replace(' ', '_', $csvArr[0][$i]). " VARCHAR(50) NOT NULL, ";
+												$col .= str_replace(' ', '_', $csvArr[0][$i]) . ",";
+											}else{
+												$sql .= str_replace(' ', '_', $csvArr[0][$i]). " VARCHAR(50) NOT NULL )";
+												$col .= str_replace(' ', '_', $csvArr[0][$i]);
+											}
+
+										}
+
+										//echo $sql;
+										$guest = new mikeSQL();
+										$guest->add_table($sql,0);
+										
+									}
+
+
+
+
+									//ADDED TABLE
+									$new_table = "list_".$list_table_name;
+									//VERIFY THAT TABLE EXIST
+									$guest = new mikeSQL();
+									$guest->exist_table($new_table);
+									if(isset($guest->ok)){
+										$queries = "";
+										for($i = 1; $i < $countRow; $i++){
+											$currentColq = "";
+											for($c = 0; $c < $countCol; $c++){
+												if($c < $countCol - 1){
+													$currentColq .= "'" .$csvArr[$i][$c]."',";
+												}else{
+													$currentColq .= "'" .$csvArr[$i][$c]."'";
+												}
+											}
+
+											$queries .= "INSERT INTO $new_table ($col) VALUES ($currentColq); ";
+										}
+										$list_total = $countRow - 1;
+										//INSERT LISTS TABLES
+										$queries .= "INSERT INTO lists (list_name,list_table_name,file_name,list_total, created_by,created_date,active) VALUES('$list_name','$list_table_name','$newfilename','$list_total',1,NOW(),1);";
+
+										//echo $queries;
+										$guest->multiple($queries);
+
+
+
+									}
+								}//File Extension
+							}//File size
+						}//Else table exist
+
+
+						
 					break;
 
 

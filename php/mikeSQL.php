@@ -235,9 +235,36 @@ class mikeSQL{
 		}
 	} 
 
+	public function add_table($sql, $json = 1){
+		$this->mysqli->query( $sql ); 
+		if($json > 0){
+			echo json_encode(array('success'=> true)); 
+		}
+	} 
+
 	public function clear_param($param){
 		return mysql_real_escape_string($param);
 	}
+
+	public function exist_table($table){
+		$result = $this->mysqli->query("SHOW TABLES LIKE '".$table."'");
+		if ($result->num_rows) {
+			$this->ok = true;
+		}else{
+			$this->ok = false; 
+		} 
+		
+	}
+
+	public function multiple($sql){
+
+		if ($this->mysqli->multi_query($sql) === TRUE) {
+		    echo json_encode(array('success'=> true)); 
+		} else {
+		    echo json_encode(array('success'=> false)); 
+		}
+
+	} 
 
 
 
