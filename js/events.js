@@ -61,9 +61,6 @@ function load_event_list(){
                         '<label class="btn btn-success btn-xs">' +
                            'Display the form' +
                         '</label>' +
-                        '<label class="btn btn-default btn-xs">' +
-                           '<span>attended: <span class="badge">789</span></span>' +
-                        '</label>' +
                         
                         '<label class="btn btn-default btn-xs">' +
                          '<span class="glyphicon glyphicon-stats" aria-hidden="true"></span>' +

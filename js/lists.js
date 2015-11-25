@@ -60,7 +60,7 @@ function load_list_list(){
                         '<label class="btn btn-default btn-xs" title="Filter">' +
                         	'<span class="glyphicon glyphicon-filter" aria-hidden="true"></span>' +
                         '</label>' +
-                        '<label class="btn btn-default btn-xs" title="View Records">' +
+                        '<label class="btn btn-default btn-xs btn_view_table" title="View Records"  rel="'+response[i]["list_id"]+'">' +
                          '<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>' +
                         '</label>' +
                         '<label class="btn btn-default btn-xs btn_edit_event" rel="'+response[i]["list_id"]+'" title="Edit">' +
@@ -128,6 +128,10 @@ function program_events(){
   //Init edit event
   $(".btn_edit_event").click(function(){
     get_info_to_edit_event($(this).attr("rel"));
+  });
+  //Init view table
+  $(".btn_view_table").click(function(){
+    init_view_table_list_dialog($(this).attr("rel"));
   });
   
 
@@ -327,7 +331,9 @@ function load_ddl_fields_available(){
 }
 
 
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+When click button will add fields into search select multiple
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function add_fields_available_to_search(){
   
   $('#ddl_fields_available :selected').each(function(i, selected){
@@ -343,7 +349,9 @@ function add_fields_available_to_search(){
 
   });
 }
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+When click button will back the search field to fields available
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function add_to_search_fields_available(){
   $('#ddl_search_engine :selected').each(function(i, selected){
     
@@ -359,7 +367,9 @@ function add_to_search_fields_available(){
   });
 }
 
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+To diable and enable left and right button when add or back fields
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function disable_button(){
   //Quantity of fields available option
   var qty_left = $('#ddl_fields_available option').size();
@@ -387,7 +397,9 @@ function disable_button(){
 
 
 
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Save search filter selected
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function save_search_filter_fields(){
 
   var qty = $('#ddl_search_engine option').size();  
@@ -438,16 +450,143 @@ function save_search_filter_fields(){
               });
 
 
-
-
            }
          });
 
-
   }
   
- 
 }
 
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Init view table list dialog
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function init_view_table_list_dialog(row_id){
 
+  //Open dialog
+  $('#myModal').modal({
+      keyboard: false
+    });
+
+  $('.modal-dialog').css("width","60%");
+  //Dialog title
+  $(".modal-title").html('<img src="img/icons/table.png" width="50"> View Table')
+    
+  load_view_table_list(row_id);
+
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Set columns in view table
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function load_view_table_list(row_id){
+
+  var html = '<div id="badge_total" class="pull-right"></div><br><br><div id="dialog_table_content" style="height: 300px; overflow-y: scroll;"><table class="table table-hover" id="tbt_fields_table"></table></div>';
+  
+  //Load dialog wiht form
+  $(".modal-body").html(html);
+
+  //Get list information
+   $.ajax({
+      type: "POST",
+      url: 'php/actions.php',
+      dataType : 'JSON',
+      data: { 
+        action: 'get_list_info_by_id',
+        list_id: row_id
+      },
+      success: function(response){
+
+        table_name = response[0]['list_table_name'];
+
+        //Get fields of table
+        $.ajax({
+          type: "POST",
+          url: 'php/actions.php',
+          dataType : 'JSON',
+          data: { 
+            action: 'get_fields_available',
+            table_name: table_name
+          },
+          success: function(response){
+            //Quantity list
+            var qty = response.length;
+            //Init var to storage html content
+            var table_content = '<thead><tr>';
+
+            //Load ddl 
+            for (var i = 0; i < qty; i++){
+              table_content += '<th>'+response[i]['Field']+'</th>';
+            }
+
+
+            table_content += '</tr></thead>';
+            //Load table content
+            $("#tbt_fields_table").append(table_content);
+
+            //Load rows table
+            load_rows_view_table();
+
+          }//End get fields
+        });
+
+      }//End get file info
+    });
+
+        
+
+
+   
+    
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Set rows in view table
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function load_rows_view_table(){
+  $.ajax({
+    type: "POST",
+    url: 'php/actions.php',
+    dataType : 'JSON',
+    data: { 
+      action: 'get_all_rows_to_view_table',
+      table_name: table_name
+    },
+    success: function(response){
+
+      console.log(response)
+      //Convert Obj to Array
+      var col = $.map(response[0], function(el) { return el });
+      var qty_rows = response.length; //Qty Rows
+      var qty_col = col.length; //Qty Coluns
+
+      //Init var to storage html content
+      var table_content = '<tbody>';
+      
+      //For rows
+      for(var i = 0; i < qty_rows; i++){
+        table_content += '<tr>';
+        //For columns
+        for(var e = 0; e < qty_col; e++){
+          var colunm = $.map(response[i], function(el) { return el });
+          if(e == 0){
+            table_content += '<th>'+colunm[e]+'</th>';
+          }else{
+            table_content += '<td>'+colunm[e]+'</td>';
+          }
+        }
+        table_content += '</tr>';
+
+      }
+
+      table_content += '</tbody>';
+
+      //Append Table
+      $("#tbt_fields_table").append(table_content);
+
+      //Total of Rows
+      $("#badge_total").html('Total of rows: <span class="badge">'+qty_rows+'</span>');
+    }
+  });
+
+}

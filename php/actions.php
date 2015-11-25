@@ -14,7 +14,9 @@
 		"create_list",					/*8*/
 		"get_fields_available",			/*9*/
 		"get_list_id_by_table_name",	/*10*/
-		"add_fields_search"				/*11*/
+		"add_fields_search",			/*11*/
+		"get_list_info_by_id",			/*12*/
+		"get_all_rows_to_view_table"	/*13*/
 		
 		);
 			
@@ -271,6 +273,19 @@
 
 						$guest = new mikeSQL();
 						$guest->multiple($sql);
+
+					break;
+
+				case 12:
+
+						$guest = new mikeSQL();
+						$guest->qry("SELECT list_id, list_name, list_table_name, file_name FROM lists WHERE list_id = '$list_id'");
+
+					break;
+				case 13:
+
+						$guest = new mikeSQL();
+						$guest->qry("SELECT * FROM $table_name");
 
 					break;
 
