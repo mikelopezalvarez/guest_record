@@ -4,6 +4,7 @@ Global Variables List
 var search_limit_rows = 10; //Search limit rows
 var event_info = null; //Get event info Obj
 var table_name = null;
+var list_id = null;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 Init List Page
@@ -115,7 +116,7 @@ function program_events(){
   //Init more result
   $("#btn_more").click(function(){
     search_limit_rows = parseInt(search_limit_rows) + 10;
-    load_event_list();
+    load_list_list();
     
   });
 
@@ -242,36 +243,26 @@ function filter_search_field_after_create_list(){
 	//Dialog title
     $(".modal-title").html('<img src="img/icons/database.png" width="50"> Search Filter');
     //Create form
-    var form = '<form id="form_add_list">'+
+    var form = '<form id="form_add_search_fields">'+
     '<div id="form_error"></div>'+
     '<div class="row">'+
 	    '<div class="col-lg-5">'+
 	    	'<div class="form-group">'+
 	        	'<label for="">Fields Available</label>'+
-	        		'<select multiple class="form-control" style="height: 250px;">'+
-					  '<option>1</option>'+
-					  '<option>2</option>'+
-					  '<option>3</option>'+
-					  '<option>4</option>'+
-					  '<option>5</option>'+
+	        		'<select multiple class="form-control" style="height: 250px;" id="ddl_fields_available">'+
 					'</select>'+
 	      	'</div>'+
 	    '</div>'+
 	    '<div class="col-lg-2">'+
 	    	'<div class="btn-group-vertical" role="group" aria-label="Vertical button group" style="position: relative; top: 100px; left: 15px;">'+
-      			'<button type="button" class="btn btn-default"><span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span></button>'+
-      			'<button type="button" class="btn btn-default"><span class="glyphicon glyphicon-menu-left" aria-hidden="true"></span></button>'+
+      			'<button type="button" class="btn btn-default" id="btn_fields_to_right"><span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span></button>'+
+      			'<button type="button" class="btn btn-default" id="btn_fields_to_left"><span class="glyphicon glyphicon-menu-left" aria-hidden="true"></span></button>'+
 			'</div>'+
 	    '</div>'+
 	    '<div class="col-lg-5">'+
 	    	'<div class="form-group">'+
 	        	'<label for="">Search Engine</label>'+
-	        		'<select multiple class="form-control" style="height: 250px;">'+
-					  '<option>1</option>'+
-					  '<option>2</option>'+
-					  '<option>3</option>'+
-					  '<option>4</option>'+
-					  '<option>5</option>'+
+	        		'<select multiple class="form-control" style="height: 250px;" id="ddl_search_engine">'+
 					'</select>'+
 	      	'</div>'+
 	    '</div>'+
@@ -284,4 +275,179 @@ function filter_search_field_after_create_list(){
     //Load dialog wiht form
     $(".modal-body").html(form);
 
+    //Load DDL of fields available
+    load_ddl_fields_available();
+
+    //Default disable button
+    $('#btn_fields_to_left').prop('disabled', true);
+
+    //Add fields available to search 
+    $("#btn_fields_to_right").click(function(){
+      add_fields_available_to_search();
+    });
+
+    //Remove search fields to fields available 
+    $("#btn_fields_to_left").click(function(){
+      add_to_search_fields_available();
+    });
+
+    $("#form_add_search_fields").submit(function(event){
+      event.preventDefault();
+      save_search_filter_fields();
+    });
+
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Load DDL of Field Available
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function load_ddl_fields_available(){
+    $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action: 'get_fields_available',
+          table_name: table_name
+        },
+        success: function(response){
+          console.log(response);
+          //Quantity list
+          var qty = response.length;
+          //Load ddl
+          for (var i = 1; i < qty; i++){
+            $('#ddl_fields_available').append($('<option>', {
+                value: response[i]['Field'],
+                text: response[i]['Field']
+            }));
+          }
+        }
+    });
+
+}
+
+
+
+function add_fields_available_to_search(){
+  
+  $('#ddl_fields_available :selected').each(function(i, selected){
+    
+    //Remove element
+    $(this).remove(); 
+    
+    //Adding element in Search 
+    $("#ddl_search_engine").append(selected);
+
+    //Verify to disable button
+    disable_button();
+
+  });
+}
+
+function add_to_search_fields_available(){
+  $('#ddl_search_engine :selected').each(function(i, selected){
+    
+    //Remove element
+    $(this).remove(); 
+
+    //Adding element in Search 
+    $("#ddl_fields_available").append(selected);
+
+    //Verify to disable button
+    disable_button();
+
+  });
+}
+
+
+function disable_button(){
+  //Quantity of fields available option
+  var qty_left = $('#ddl_fields_available option').size();
+
+  //Quantity of fields search option
+  var qty_right = $('#ddl_search_engine option').size();  
+    
+  //If not there more option, disable button
+  if(qty_left < 1){
+    $('#btn_fields_to_right').prop('disabled', true);
+  }else{
+    $('#btn_fields_to_right').prop('disabled', false);
+  }
+
+  //If not there more option, disable button
+  if(qty_right < 1){
+    $('#btn_fields_to_left').prop('disabled', true);
+  }else{
+    $('#btn_fields_to_left').prop('disabled', false);
+  }
+
+  //Clear form error
+  $("#form_error").html('');
+}
+
+
+
+
+function save_search_filter_fields(){
+
+  var qty = $('#ddl_search_engine option').size();  
+
+  if(qty < 1){
+    $("#form_error").html('<div class="alert alert-danger" role="alert">You must select at least one field.</div>');
+  }else{
+    var search_fields = []; 
+
+    $("#ddl_search_engine option").each(function(){
+      search_fields.push($(this).val()); 
+    });
+    console.log(search_fields)
+    //Get list_id
+    $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action: 'get_list_id_by_table_name',
+          table_name: table_name
+        },
+        success: function(response){
+          console.log(response);
+          list_id = response[0]['list_id'];
+
+
+
+            //Send and Save Search Engine Fields
+             $.ajax({
+                type: "POST",
+                url: 'php/actions.php',
+                dataType : 'JSON',
+                data: { 
+                  action: 'add_fields_search',
+                  list_id: list_id,
+                  fields: search_fields
+                },
+                success: function(response){
+                  console.log(response)
+                  if(response.success){
+                    //Close dialog
+                    $('#myModal').modal('hide');
+                    //Reload event list
+                    load_list_list();
+                  }
+                }
+              });
+
+
+
+
+           }
+         });
+
+
+  }
+  
+ 
+}
+
+
+

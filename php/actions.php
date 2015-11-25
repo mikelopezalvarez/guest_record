@@ -11,7 +11,10 @@
 		"get_event_info",				/*5*/
 		"edit_event",					/*6*/
 		"get_lists",					/*7*/
-		"create_list"					/*8*/
+		"create_list",					/*8*/
+		"get_fields_available",			/*9*/
+		"get_list_id_by_table_name",	/*10*/
+		"add_fields_search"				/*11*/
 		
 		);
 			
@@ -225,11 +228,13 @@
 											$queries .= "INSERT INTO $new_table ($col) VALUES ($currentColq); ";
 										}
 										$list_total = $countRow - 1;
+										$new_list_table_name = 'list_'.$list_table_name;
 										//INSERT LISTS TABLES
-										$queries .= "INSERT INTO lists (list_name,list_table_name,file_name,list_total, created_by,created_date,active) VALUES('$list_name','$list_table_name','$newfilename','$list_total',1,NOW(),1);";
+										$queries .= "INSERT INTO lists (list_name,list_table_name,file_name,list_total, created_by,created_date,active) VALUES('$list_name','$new_list_table_name','$newfilename','$list_total',1,NOW(),1);";
 
 										//echo $queries;
 										$guest->multiple($queries);
+
 
 
 
@@ -240,6 +245,33 @@
 
 
 						
+					break;
+
+
+				case 9:
+
+						$guest = new mikeSQL();
+						$guest->qry("DESCRIBE $table_name");
+
+
+					break;
+				case 10:
+
+						$guest = new mikeSQL();
+						$guest->qry("SELECT list_id FROM lists WHERE list_table_name = '$table_name'");
+
+					break;
+				case 11:
+						$qty = count($fields);
+						$sql = '';
+
+						for($i = 0; $i < $qty; $i++){
+							$sql .= "INSERT INTO fields_search (list_id,field_name) VALUES('$list_id','".$fields[$i]."');";
+						}
+
+						$guest = new mikeSQL();
+						$guest->multiple($sql);
+
 					break;
 
 

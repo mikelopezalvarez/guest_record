@@ -193,7 +193,6 @@ function init_add_event_dialog(){
 Load DDL of List
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function load_ddl_list(){
-   //Send params for add event
     $.ajax({
         type: "POST",
         url: 'php/actions.php',
