@@ -4,6 +4,7 @@ Global Variables List
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 var search_limit_rows = 10; //Search limit rows
 var event_info = null; //Get event info Obj
+var search_arr = null; //Storage search
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
@@ -58,7 +59,7 @@ function load_event_list(){
                         response[i]["event_name"] +
                       '</a>' +
                       '<div class="btn-group pull-right" data-toggle="buttons" style="position: relative; top: -2px;">' +
-                        '<label class="btn btn-success btn-xs">' +
+                        '<label class="btn btn-success btn-xs btn_display_form" rel="'+response[i]["event_id"]+'" title="'+response[i]["event_name"]+'">' +
                            'Display the form' +
                         '</label>' +
                         
@@ -130,6 +131,10 @@ function program_events(){
   //Init edit event
   $(".btn_edit_event").click(function(){
     get_info_to_edit_event($(this).attr("rel"));
+  });
+
+  $(".btn_display_form").click(function(){
+    init_display_form($(this).attr("rel"),$(this).attr("title"));
   });
   
 
@@ -381,3 +386,121 @@ function edit_event(e){
 }
 
 
+
+
+
+function init_display_form(event_id, title){
+  //Init Fullscreen Mode
+  $(document).fullScreen(true);
+
+  //Put title
+  $("#lbl_title").text(title);
+
+  //HTML Empty
+  $("#header-content").html('');
+
+  var form = '<form id="form_search_in_list">'+ 
+  '<div class="input-group">' +
+    '<input type="text" class="form-control" placeholder="Search any fields in list..." id="txt_search">'+
+      '<span class="input-group-btn">'+
+        '<button class="btn btn-default" type="submit" id="btn_search">Search</button>'+
+      '</span>'+
+  '</div></form>';
+
+  $("#general-content").html(form);
+
+  //Init Validation Engine
+  $("#form_search_in_list").validationEngine();
+
+  //When submit add event
+  $("#form_search_in_list").submit(function(event){
+    //Prevent Default
+    event.preventDefault();
+    //Call add event function
+    search_in_list(event_id);
+  });
+
+
+}
+
+
+function search_in_list(event_id){
+
+  //Get form status
+  var status = $("#form_search_in_list").validationEngine('validate');
+
+  if(status == true){
+    //Send params to add event
+    $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action: 'search_in_list', 
+          search: $("#txt_search").val(),
+          event_id: event_id
+        },
+        success: function(response){
+          search_arr = response;
+
+          load_search_table();
+        }
+      });
+
+  }
+
+}
+
+
+
+function load_search_table(){
+  //Convert Obj to Array
+  var col = $.map(search_arr[0], function(el) { return el });
+  var qty_rows = search_arr.length; //Qty Rows
+  var qty_col = col.length; //Qty Coluns
+  console.log(search_arr);
+
+  $("#general-content").html('<table class="table table-bordered table-hover" id="search_table"></table>');
+  
+  var table_content = '<thead> <tr>'; 
+  var colunm = $.map(search_arr[0], function(el) { return el });
+  //Insert Column 
+  $.each(search_arr[0], function( key, obj ) {
+    table_content += '<th>' +key+ '</th>';
+  });
+
+  table_content += '<tr></thead>';
+
+      //Init var to storage html content
+      table_content += '<tbody>';
+      
+      //For rows
+      for(var i = 0; i < qty_rows; i++){
+        table_content += '<tr class="row_id" rel="'+search_arr[i]['ID']+'">';
+        //For columns
+        for(var e = 0; e < qty_col; e++){
+          var colunm = $.map(search_arr[i], function(el) { return el });
+          if(e == 0){
+            table_content += '<th>'+colunm[e]+'</th>';
+          }else{
+            table_content += '<td>'+colunm[e]+'</td>';
+          }
+        }
+        table_content += '</tr>';
+
+      }
+
+      table_content += '</tbody>';
+
+      //Append Table
+      $("#search_table").append(table_content);
+
+
+  //<th>#</th> <th>First Name</th> <th>Last Name</th> <th>Username</th>
+
+
+
+
+  
+
+}

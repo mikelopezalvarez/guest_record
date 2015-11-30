@@ -16,7 +16,8 @@
 		"get_list_id_by_table_name",	/*10*/
 		"add_fields_search",			/*11*/
 		"get_list_info_by_id",			/*12*/
-		"get_all_rows_to_view_table"	/*13*/
+		"get_all_rows_to_view_table",	/*13*/
+		"search_in_list"				/*14*/
 		
 		);
 			
@@ -288,9 +289,57 @@
 						$guest->qry("SELECT * FROM $table_name");
 
 					break;
+				case 14:
+						//echo 'hola';
+						$guest = new mikeSQL();
+						$guest->_get("SELECT * FROM event_list WHERE event_id = '$event_id'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						//GET FIELDS SEARCH FOR THIS EVENT
+						$guest->_get("SELECT * FROM fields_search WHERE list_id = '".$result[0]['list_id']."'", 0);
+						$list_id = $result[0]['list_id']; //GET LIST ID
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+						//COUNT OF FIELDS
+						$qty_fields = count($result);
+						//print_r($guest->rows);
+						//echo $qty_fields;
+
+						//GET SELECT OF QUERY
+						$field_select = "";	
+						for ($i = 0; $i < $qty_fields; $i++){
+							
+							$field_select .= " l.".$result[$i]['field_name']. ", "; 
+							
+						}
+						//GET WHERE OF QUERY
+						$field_where = "1 = 1 AND ";
+						for ($i = 0; $i < $qty_fields; $i++){
+							if($i < $qty_fields - 1){
+								$field_where .= " l.".$result[$i]['field_name']. " = '$search' OR "; 
+							}else{
+								$field_where .= " l.".$result[$i]['field_name']. " = '$search' "; 
+							}
+						}
+
+						//GET TABLE NAME
+						$guest->_get("SELECT * FROM lists WHERE list_id = '".$list_id."'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+						//STORAGE TABLE NAME
+						$table_name = $result[0]['list_table_name'];
+
+						//GENERATE QUERY
+						$query = "SELECT l.row_id AS ID, $field_select IF(ee.event_id IS NULL,'No','Yes') AS Attended FROM $table_name l LEFT JOIN event_entries ee ON l.row_id = ee.row_id WHERE $field_where ";
+						$guest->_get($query);
+						//echo $query;
+
+					break;
 
 
 				}
+
 
 
 		}
