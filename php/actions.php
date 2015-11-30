@@ -17,7 +17,8 @@
 		"add_fields_search",			/*11*/
 		"get_list_info_by_id",			/*12*/
 		"get_all_rows_to_view_table",	/*13*/
-		"search_in_list"				/*14*/
+		"search_in_list",				/*14*/
+		"register_guest"				/*15*/
 		
 		);
 			
@@ -331,9 +332,21 @@
 						$table_name = $result[0]['list_table_name'];
 
 						//GENERATE QUERY
-						$query = "SELECT l.row_id AS ID, $field_select IF(ee.event_id IS NULL,'No','Yes') AS Attended FROM $table_name l LEFT JOIN event_entries ee ON l.row_id = ee.row_id WHERE $field_where ";
+						$query = "SELECT l.row_id AS ID, $field_select IF(ee.event_id IS NULL,'No','Yes') AS Attended FROM $table_name l LEFT JOIN event_entries ee ON l.row_id = ee.row_id WHERE $field_where  ORDER BY l.row_id";
 						$guest->_get($query);
-						//echo $query;
+
+					break;
+
+				case 15:
+
+						$guest = new mikeSQL();
+						if($att == "No"){
+							//INSERT EVENTS
+							$guest->_add("INSERT INTO event_entries (row_id,event_id,created_by,created_date) VALUES('$row_id', '$event_id', 1, NOW())");
+
+						}else{
+							$guest->_del("DELETE FROM event_entries WHERE row_id = '$row_id' AND event_id = '$event_id'");
+						}
 
 					break;
 

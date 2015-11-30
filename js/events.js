@@ -405,7 +405,7 @@ function init_display_form(event_id, title){
       '<span class="input-group-btn">'+
         '<button class="btn btn-default" type="submit" id="btn_search">Search</button>'+
       '</span>'+
-  '</div></form>';
+  '</div></form><hr><div id="table-content"></div>';
 
   $("#general-content").html(form);
 
@@ -419,6 +419,7 @@ function init_display_form(event_id, title){
     //Call add event function
     search_in_list(event_id);
   });
+
 
 
 }
@@ -441,9 +442,14 @@ function search_in_list(event_id){
           event_id: event_id
         },
         success: function(response){
-          search_arr = response;
 
-          load_search_table();
+          if(response){
+            search_arr = response;
+
+            load_search_table(event_id);
+          }else{
+            $("#table-content").html('<div class="alert alert-info" role="alert">No Record found</div>');
+          }
         }
       });
 
@@ -453,14 +459,13 @@ function search_in_list(event_id){
 
 
 
-function load_search_table(){
+function load_search_table(event_id){
   //Convert Obj to Array
   var col = $.map(search_arr[0], function(el) { return el });
   var qty_rows = search_arr.length; //Qty Rows
   var qty_col = col.length; //Qty Coluns
-  console.log(search_arr);
 
-  $("#general-content").html('<table class="table table-bordered table-hover" id="search_table"></table>');
+  $("#table-content").html('<table class="table table-bordered table-hover" id="search_table"></table>');
   
   var table_content = '<thead> <tr>'; 
   var colunm = $.map(search_arr[0], function(el) { return el });
@@ -476,7 +481,7 @@ function load_search_table(){
       
       //For rows
       for(var i = 0; i < qty_rows; i++){
-        table_content += '<tr class="row_id" rel="'+search_arr[i]['ID']+'">';
+        table_content += '<tr class="row_id" rel="'+search_arr[i]['ID']+'" att="'+search_arr[i]['Attended']+'">';
         //For columns
         for(var e = 0; e < qty_col; e++){
           var colunm = $.map(search_arr[i], function(el) { return el });
@@ -495,12 +500,41 @@ function load_search_table(){
       //Append Table
       $("#search_table").append(table_content);
 
+      $(".row_id").click(function(){
+        register_guest($(this).attr("rel"), event_id, $(this).attr("att"));
+      });
 
-  //<th>#</th> <th>First Name</th> <th>Last Name</th> <th>Username</th>
+
+}
 
 
 
+function register_guest(row_id,event_id,att){
 
-  
+  if(att == 'No'){
+    var msg = 'Do you want to register this guest?'
+  }else{
+    var msg = 'Do you want to remove the assistance of this guest?'
+  }
+
+  var register = confirm(msg);
+    
+  if (register == true) {
+    //Send params to add event
+    $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action:   'register_guest', 
+          row_id    : row_id,
+          event_id  : event_id,
+          att       : att
+        },
+        success: function(response){
+          search_in_list(event_id);
+        }
+      });
+  }
 
 }
