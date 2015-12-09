@@ -5,6 +5,8 @@ Global Variables List
 var search_limit_rows = 10; //Search limit rows
 var event_info = null; //Get event info Obj
 var search_arr = null; //Storage search
+var basic_analytics = null; //Storage Basic Analytics
+var LineChart = null;
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
@@ -28,6 +30,31 @@ function init_event(){
     
   });
 
+  //Load header search
+  load_header_search();
+
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Load Search of Header
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function load_header_search(){
+  //Set screen title
+  $("#lbl_title").text('Events');
+
+  var html = '<div class="col-md-4 col-lg-4">'+
+            '<div class="input-group">'+
+              '<input type="text" class="form-control" placeholder="Search for..." id="txt_search">'+
+              '<span class="input-group-btn">'+
+                '<button class="btn btn-default" type="button" id="btn_search">Search</button>'+
+              '</span>'+
+            '</div>'+
+          '</div>'+
+         ' <div class="col-md-8 col-lg-8">'+
+            '<img src="img/icons/add.png" width="35" style=" float: right; cursor: pointer;" id="add_event"/>'+
+          '</div>';
+
+  $("#header-content").html(html);
 }
 
 
@@ -63,7 +90,7 @@ function load_event_list(){
                            'Display the form' +
                         '</label>' +
                         
-                        '<label class="btn btn-default btn-xs">' +
+                        '<label class="btn btn-default btn-xs btn_analytics_event" rel="'+response[i]["event_id"]+'">' +
                          '<span class="glyphicon glyphicon-stats" aria-hidden="true"></span>' +
                         '</label>' +
                         '<label class="btn btn-default btn-xs btn_edit_event" rel="'+response[i]["event_id"]+'">' +
@@ -131,6 +158,11 @@ function program_events(){
   //Init edit event
   $(".btn_edit_event").click(function(){
     get_info_to_edit_event($(this).attr("rel"));
+  });
+
+  //Init analytics event
+  $(".btn_analytics_event").click(function(){
+    init_full_analytics_events($(this).attr("rel"));
   });
 
   $(".btn_display_form").click(function(){
@@ -388,10 +420,19 @@ function edit_event(e){
 
 
 
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Init Display Form 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function init_display_form(event_id, title){
   //Init Fullscreen Mode
   $(document).fullScreen(true);
+
+  $(document).bind("fullscreenchange", function() {
+    var mode = ($(document).fullScreen() ? "on" : "off");
+    if(mode == "off"){
+      init_event();
+    }
+  });
 
   //Put title
   $("#lbl_title").text(title);
@@ -399,13 +440,13 @@ function init_display_form(event_id, title){
   //HTML Empty
   $("#header-content").html('');
 
-  var form = '<form id="form_search_in_list">'+ 
+  var form = '<div class="row"><div class="col-lg-8"><form id="form_search_in_list">'+ 
   '<div class="input-group">' +
     '<input type="text" class="form-control" placeholder="Search any fields in list..." id="txt_search">'+
       '<span class="input-group-btn">'+
         '<button class="btn btn-default" type="submit" id="btn_search">Search</button>'+
       '</span>'+
-  '</div></form><hr><div id="table-content"></div>';
+  '</div></form></div><div class="col-lg-4" id="search_analytics"></div></div><hr><div id="table-content"></div>';
 
   $("#general-content").html(form);
 
@@ -420,12 +461,21 @@ function init_display_form(event_id, title){
     search_in_list(event_id);
   });
 
+  //Load first time analytics bar
+  display_percent_attended(event_id);
+  //Reload Analytics Bar each 5s
+  setInterval(display_percent_attended, 5000, event_id);
 
 
 }
 
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Search into List
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function search_in_list(event_id){
+
+  //Display percent attended
+  display_percent_attended(event_id);
 
   //Get form status
   var status = $("#form_search_in_list").validationEngine('validate');
@@ -458,7 +508,9 @@ function search_in_list(event_id){
 }
 
 
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Load Search Table 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function load_search_table(event_id){
   //Convert Obj to Array
   var col = $.map(search_arr[0], function(el) { return el });
@@ -481,7 +533,11 @@ function load_search_table(event_id){
       
       //For rows
       for(var i = 0; i < qty_rows; i++){
-        table_content += '<tr class="row_id" rel="'+search_arr[i]['ID']+'" att="'+search_arr[i]['Attended']+'">';
+        if(search_arr[i]['Attended'] == "Yes"){
+          table_content += '<tr class="success row_id" rel="'+search_arr[i]['ID']+'" att="'+search_arr[i]['Attended']+'">';
+        }else{
+          table_content += '<tr class="row_id" rel="'+search_arr[i]['ID']+'" att="'+search_arr[i]['Attended']+'">';
+        }
         //For columns
         for(var e = 0; e < qty_col; e++){
           var colunm = $.map(search_arr[i], function(el) { return el });
@@ -508,7 +564,9 @@ function load_search_table(event_id){
 }
 
 
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Register Guest
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function register_guest(row_id,event_id,att){
 
   if(att == 'No'){
@@ -536,5 +594,410 @@ function register_guest(row_id,event_id,att){
         }
       });
   }
+
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Put the Percent Bar into HTML
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function display_percent_attended(event_id){
+
+  get_basic_analytics_event({
+    event_id : event_id,
+    success: function(result){
+
+      $("#search_analytics").html('<div class="progress" style="margin-bottom: 0px !important;">'+
+        '<div class="progress-bar" role="progressbar" aria-valuenow="'+result.perc+'" aria-valuemin="0" aria-valuemax="100" style="width: '+result.perc+'%;">'+
+            result.perc +'%'+
+        '</div>'+
+      '</div><div class="pull-right">'+result.total_attended+ ' attended of '+result.total_rows+' guest</div>');
+
+    }
+  });
+
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Get Basic Analytics Information
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function get_basic_analytics_event(p){
+  
+  $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action:   'get_basic_analytics_event', 
+          event_id  : p.event_id
+        },
+        success: function(result){
+
+                if(p && p.success)
+                p.success(result);
+        }
+  });
+
+
+}
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Init Full Analytics Dialog
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function init_full_analytics_events(event_id){
+
+  //Open dialog
+  $('#myModal').modal({
+      keyboard: false
+    });
+    //Dialog title
+    $(".modal-title").html('<img src="img/icons/powerpoint.png" width="50"> Analytics Event')
+    //Resize modal
+    $('.modal-dialog').css("width","60%");
+    //Create form
+    var content = '<div class="row"><div class="col-lg-12 col-md-12"><div id="modal-analytics-bar"></div>'+
+    '<hr><div id="modal-analytics-text"></div>'+
+    '<hr><div id="modal-analytics-chart">'+
+    '<div class="row">'+
+      '<div class="col-lg-4 col-md-6 col-sm-11 col-xs-12" style="padding-right: 0;">'+
+        '<input type="text" class="form-control" placeholder="Select date" id="txt_chart_date" disabled="disabled" />'+
+      '</div>'+
+      '<div class="col-lg-4 col-md-6 col-sm-1 col-xs-12" style="padding-left: 0;">'+
+        '<button class="btn btn-default" type="button" id="btn_chart_date">'+
+            '<span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>'+
+        '</button>'+
+      '</div>'+
+      '</div>'+
+        '<divs id="chart" style=""></div>'+
+      '</div>'+
+      '<hr><div id="modal-analytics-users"></div></div></div>';
+    
+    //Load dialog wiht form
+    $(".modal-body").html(content);
+    
+    //Get Basic Info
+    get_basic_analytics_event({
+      event_id : event_id,
+      success: function(result){
+
+        $("#modal-analytics-bar").html('<div class="progress" style="margin-bottom: 0px !important;">'+
+        '<div class="progress-bar" role="progressbar" aria-valuenow="'+result.perc+'" aria-valuemin="0" aria-valuemax="100" style="width: '+result.perc+'%;">'+
+            result.perc +'%'+
+        '</div>'+
+      '</div><div class="pull-right">');
+
+        $("#modal-analytics-text").html('<div class="row"><div class="col-lg-6"><dl class="dl-horizontal">'+
+            '<dt>Total:</dt>'+
+            '<dd>'+result.total_rows+'</dd>'+
+            '<dt>Attended:</dt>'+
+            '<dd>'+result.total_attended+'</dd>'+
+          '</dl></div><div class="col-lg-6"><dl class="dl-horizontal">'+
+            '<dt>Percentage:</dt>'+
+            '<dd>'+result.perc+'%</dd>'+
+            '<dt>Users Work:</dt>'+
+            '<dd>'+result.perc+'</dd>'+
+          '</dl></div></div>');
+
+        init_chart_event(event_id);
+
+
+      }
+    });
+
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Init Chart 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function init_chart_event(event_id){
+
+  //Get Min and Max Date Record
+    get_min_max_date_of_event({
+      event_id : event_id,
+      success: function(result){
+        //Init datepicker
+        $("#txt_chart_date").datepicker({ 
+          dateFormat: 'yy-mm-dd',
+          minDate: result[0]['min_date'],
+          maxDate: result[0]['max_date']
+        });
+
+        //Fill text field with Date (First Time)
+        $("#txt_chart_date").val(result[0]['txt_date']);
+         
+        //Init Date Picker
+        $("#btn_chart_date").click(function(event){
+          //event.preventDefault();
+            $("#txt_chart_date").datepicker('show');
+        });
+
+
+        //Init Date Picker
+        $("#txt_chart_date").change(function(){
+            load_chart_event(event_id);
+        });
+
+
+        load_chart_event(event_id);
+
+        //When window resize call chart function
+        $( window ).resize(function() {
+          load_chart_event(event_id);
+        });
+
+
+
+      }
+    });
+  
+}
+
+  
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Display Line Chart
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function load_chart_event(event_id){ 
+
+  //Get Count of Each Hours 
+  get_count_event_all_hours({
+    event_id : event_id,
+    selected_date: $("#txt_chart_date").val(),
+    success: function(result){
+
+   
+
+      /* Add a basic data series with six labels and values */
+      var data = {
+        labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24'],
+        series: [
+          {
+            data: [result.h1, result.h2, result.h3, result.h4, result.h5, result.h6, result.h7, result.h8, result.h9, result.h10, result.h11, result.h12, result.h13, result.h14, result.h15, result.h16, result.h17, result.h18, result.h19, result.h20, result.h21, result.h22, result.h23, result.h24]
+          }
+        ]
+        
+      };
+
+      var w = $('.modal-dialog').width()  + "px"; 
+
+      /* Set some base options (settings will override the default settings in Chartist.js *see default settings*). We are adding a basic label interpolation function for the xAxis labels. */
+      var options = {
+        axisX: {
+          labelInterpolationFnc: function(value) {
+              return '<div class="chart-label" rel="'+value+'">h <strong>' + value + '</strong></div>';
+          }
+        },
+        width: w,
+        height: '200px',
+        low: 100,
+        showArea: true,
+        fullWidth: true,
+        showPoint: true
+      };
+
+      /* Now we can specify multiple responsive settings that will override the base settings based on order and if the media queries match. In this example we are changing the visibility of dots and lines as well as use different label interpolations for space reasons. */
+      var responsiveOptions = [
+        ['screen and (min-width: 641px) and (max-width: 1024px)', {
+          showPoint: false,
+          axisX: {
+            labelInterpolationFnc: function(value) {
+              return '<div class="chart-label" rel="'+value+'">h <strong>' + value + '</strong></div>';
+            }
+          },
+          width: $('.modal-dialog').width()  + "px"
+        }],
+        ['screen and (max-width: 640px)', {
+          showLine: false,
+          axisX: {
+            labelInterpolationFnc: function(value) {
+              return '<div class="chart-label" rel="'+value+'">h <strong>' + value + '</strong></div>';
+            }
+          },
+          width: $('.modal-dialog').width()  + "px"
+        }]
+      ];
+
+
+      /* Initialize the chart with the above settings */
+      var chart = new Chartist.Line('#chart', data, options, responsiveOptions);
+
+      chart.on('created', function(){
+        chart_event_settting(event_id);
+      });
+    
+     }
+  });
+  
+  
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Chart Tooltip Configuration
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function chart_event_settting(event_id){
+   
+//Display Tooltip
+  $('.ct-point').click(function(e){
+      e.stopPropagation();
+      var hour = parseInt($(this).index()) - 1;
+      //console.log(hour);
+
+    var div = $("#chart-tooltip");
+    div.css( {
+        display: 'inline',
+        position:"absolute", 
+        top:event.pageY, 
+        left: event.pageX
+    });
+
+    //Get Attended Info by Hour
+    get_chart_attended_by_hour({
+      event_id : event_id,
+      record_date: $("#txt_chart_date").val(),
+      hour: hour,
+      success: function(result){
+       
+
+        $("#title-tooltip").html('Hour : <span class="">'+ hour+'</span><br /><br />');
+
+
+        //Convert Obj to Array
+        var col = $.map(result[0], function(el) { return el });
+        var qty_rows = result.length; //Qty Rows
+        var qty_col = col.length; //Qty Coluns
+
+        $("#chart_table_area").html('<table class="table table-bordered table-hover" id="chart_table"></table>');
+        
+        var table_content = '<thead> <tr>'; 
+        var colunm = $.map(result[0], function(el) { return el });
+        //Insert Column 
+        $.each(result[0], function( key, obj ) {
+          table_content += '<th>' +key+ '</th>';
+        });
+
+        table_content += '<tr></thead>';
+
+            //Init var to storage html content
+            table_content += '<tbody>';
+            
+            //For rows
+            for(var i = 0; i < qty_rows; i++){
+             
+              table_content += '<tr class="row_id" rel="" att="">';
+             
+              //For columns
+              for(var e = 0; e < qty_col; e++){
+                var colunm = $.map(result[i], function(el) { return el });
+                  table_content += '<td>'+colunm[e]+'</td>';
+              }
+              table_content += '</tr>';
+
+            }
+
+            table_content += '</tbody>';
+
+            //Append Table
+            $("#chart_table").append(table_content);
+        
+      }
+    });
+  });
+
+
+
+
+
+  //Hide Tooltip
+  $(document).on('click',function(){
+    $("#chart-tooltip").hide();
+  });
+
+  //When click div not hide tooltip
+  $('#chart-tooltip').click(function(e){
+      e.stopPropagation();
+
+  });
+
+
+
+
+}
+
+
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Get Chart Attended By Date & Hour
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function get_chart_attended_by_hour(p){
+  
+  $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action:   'get_chart_attended_by_hour', 
+          event_id    : p.event_id,
+          record_date : p.record_date,
+          hour        : p.hour
+        },
+        success: function(result){
+
+                if(p && p.success)
+                p.success(result);
+        }
+  });
+
+
+}
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Get Min and Max Date of Event
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function get_min_max_date_of_event(p){
+  
+  $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action:   'get_min_max_date_of_event', 
+          event_id    : p.event_id
+        },
+        success: function(result){
+
+                if(p && p.success)
+                p.success(result);
+        }
+  });
+
+
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Get Count Event All Hours
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function get_count_event_all_hours(p){
+  
+  $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action:   'get_count_event_all_hours', 
+          event_id    : p.event_id,
+          selected_date: p.selected_date
+        },
+        success: function(result){
+
+                if(p && p.success)
+                p.success(result);
+        }
+  });
+
 
 }

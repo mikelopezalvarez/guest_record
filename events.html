@@ -14,10 +14,14 @@
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/custom.css" type="text/css" rel="stylesheet" />
 
     <!-- Custom styles for this template -->
     <link href="css/justified-nav.css" rel="stylesheet">
     <link rel="stylesheet" href="js/plugins/ValidationEngine/css/validationEngine.jquery.css" type="text/css"/>
+    <link rel="stylesheet" href="js/plugins/Charts/Chartist.min.css" type="text/css"/>
+    <link href="js/plugins/JqueryDatePicker/jquery-ui.css" rel="stylesheet">
+
 
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
@@ -49,17 +53,7 @@
         <h4 id="lbl_title">Events</h4>
         
         <div class="row" id="header-content">
-          <div class="col-md-4 col-lg-4">
-            <div class="input-group">
-              <input type="text" class="form-control" placeholder="Search for..." id="txt_search">
-              <span class="input-group-btn">
-                <button class="btn btn-default" type="button" id="btn_search">Search</button>
-              </span>
-            </div>
-          </div>
-          <div class="col-md-8 col-lg-8">
-            <img src="img/icons/add.png" width="35" style=" float: right; cursor: pointer;" id="add_event"/>
-          </div>
+          
         </div>
 
         
@@ -92,6 +86,9 @@
     <script src="js/plugins/ValidationEngine/js/languages/jquery.validationEngine-en.js"></script>
     <script src="js/plugins/ValidationEngine/js/jquery.validationEngine.js" type="text/javascript" charset="utf-8"></script>
     <script src="js/plugins/Fullscreen/jquery.fullscreen-min.js"></script>
+    <script src="js/plugins/Charts/Chartist.min.js"></script>
+    <script src="js/plugins/JqueryDatePicker/jquery-ui.js"></script>
+
     <!-- Configuration Page -->
     <script src="js/menu.js"></script>
     <script src="js/events.js"></script>
@@ -130,3 +127,6 @@
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+
+<div id="chart-tooltip"><strong id="title-tooltip"></strong><div id="chart_table_area"></div></div>

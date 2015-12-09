@@ -18,7 +18,12 @@
 		"get_list_info_by_id",			/*12*/
 		"get_all_rows_to_view_table",	/*13*/
 		"search_in_list",				/*14*/
-		"register_guest"				/*15*/
+		"register_guest",				/*15*/
+		"get_basic_analytics_event", 	/*16*/
+		"get_chart_event_info",			/*17*/
+		"get_chart_attended_by_hour",	/*18*/
+		"get_min_max_date_of_event",	/*19*/
+		"get_count_event_all_hours"		/*20*/
 		
 		);
 			
@@ -291,7 +296,6 @@
 
 					break;
 				case 14:
-						//echo 'hola';
 						$guest = new mikeSQL();
 						$guest->_get("SELECT * FROM event_list WHERE event_id = '$event_id'", 0);
 						//RESULT OF BEFORE QUERY
@@ -318,9 +322,9 @@
 						$field_where = "1 = 1 AND ";
 						for ($i = 0; $i < $qty_fields; $i++){
 							if($i < $qty_fields - 1){
-								$field_where .= " l.".$result[$i]['field_name']. " = '$search' OR "; 
+								$field_where .= " l.".$result[$i]['field_name']. " LIKE '%$search%' OR "; 
 							}else{
-								$field_where .= " l.".$result[$i]['field_name']. " = '$search' "; 
+								$field_where .= " l.".$result[$i]['field_name']. " LIKE '%$search%' "; 
 							}
 						}
 
@@ -347,6 +351,346 @@
 						}else{
 							$guest->_del("DELETE FROM event_entries WHERE row_id = '$row_id' AND event_id = '$event_id'");
 						}
+
+					break;
+				case 16:
+						$guest = new mikeSQL();
+						$guest->_get("SELECT * FROM event_list WHERE event_id = '$event_id'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						//GET LIST INFO
+						$guest->_get("SELECT * FROM lists WHERE list_id = '".$result[0]['list_id']."'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$table_name = $result[0]['list_table_name'];
+						//GET COUNT OF ROWS
+						$guest->_get("SELECT COUNT(row_id) AS total_rows FROM $table_name ", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$total_rows = $result[0]["total_rows"];
+
+						//GET COUNT OF ATTENDED
+						$guest->_get("SELECT COUNT(row_id) AS total_rows FROM event_entries WHERE event_id = '$event_id' ", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$total_attended = $result[0]["total_rows"];
+
+						$calc = $total_attended * 100;
+						$perc = $calc / $total_rows;
+
+						echo json_encode(array("success"=>true,"total_rows"=>$total_rows,"total_attended"=>$total_attended,"perc"=>round($perc)));
+
+
+					break;
+				case 17:
+
+
+					break;
+				case 18:
+
+						$guest = new mikeSQL();
+						$guest->_get("SELECT * FROM event_list WHERE event_id = '$event_id'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						//GET LIST INFO
+						$guest->_get("SELECT * FROM lists WHERE list_id = '".$result[0]['list_id']."'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+						//STORAGE TABLE NAME
+						$table_name = $result[0]['list_table_name'];
+
+						//GET FIELDS SEARCH FOR THIS EVENT
+						$guest->_get("SELECT * FROM fields_search WHERE list_id = '".$result[0]['list_id']."'", 0);
+						$list_id = $result[0]['list_id']; //GET LIST ID
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+						//COUNT OF FIELDS
+						$qty_fields = count($result);
+						//GET SELECT OF QUERY
+						$field_select = "";	
+						for ($i = 0; $i < $qty_fields; $i++){
+							
+							$field_select .= " l.".$result[$i]['field_name']. ", "; 
+							
+						}
+						//START DATE
+						$start = $record_date . ' 0'.$hour.':00:00';
+						//END DATE
+						$end = $record_date . ' 0'.$hour.':59:59';
+
+						//GET ATTENDED RECORD
+						$guest->_get("SELECT $field_select ee.created_date AS Registered FROM event_entries ee JOIN $table_name l ON l.row_id = ee.row_id WHERE ee.created_date between '$start' and '$end' ORDER BY ee.created_date");
+
+
+
+					break;
+				case 19: 
+
+						$guest = new mikeSQL();
+						$guest->_get("SELECT MIN(created_date) AS min_date, MAX(created_date) AS max_date,
+						DATEDIFF(MIN(created_date), MAX(created_date)) AS days, DATE_FORMAT(MAX(created_date),'%Y-%m-%d') AS txt_date FROM event_entries WHERE event_id = '$event_id'");
+
+
+					break;
+				case 20: 
+
+						$guest = new mikeSQL();
+
+						/************1************/
+						$hs = $selected_date . ' 01:00:00';
+						$he = $selected_date . ' 01:59:59';
+
+						
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h1 = $result[0]['total'];
+
+						/************2************/
+						$hs = $selected_date . ' 02:00:00';
+						$he = $selected_date . ' 02:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h2 = $result[0]['total'];
+						
+
+						/************3************/
+						$hs = $selected_date . ' 03:00:00';
+						$he = $selected_date . ' 03:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h3 = $result[0]['total'];
+						
+
+						/************4************/
+						$hs = $selected_date . ' 04:00:00';
+						$he = $selected_date . ' 04:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h4 = $result[0]['total'];
+						
+
+						/************5************/
+						$hs = $selected_date . ' 05:00:00';
+						$he = $selected_date . ' 05:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h5 = $result[0]['total'];
+						
+
+						/************6************/
+						$hs = $selected_date . ' 06:00:00';
+						$he = $selected_date . ' 06:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h6 = $result[0]['total'];
+
+						/************7************/
+						$hs = $selected_date . ' 07:00:00';
+						$he = $selected_date . ' 07:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h7 = $result[0]['total'];
+
+						/************8************/
+						$hs = $selected_date . ' 08:00:00';
+						$he = $selected_date . ' 08:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h8 = $result[0]['total'];
+
+						/************9************/
+						$hs = $selected_date . ' 09:00:00';
+						$he = $selected_date . ' 09:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h9 = $result[0]['total'];
+
+						/************10************/
+						$hs = $selected_date . ' 10:00:00';
+						$he = $selected_date . ' 10:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h10 = $result[0]['total'];
+
+						/************11************/
+						$hs = $selected_date . ' 11:00:00';
+						$he = $selected_date . ' 11:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h11 = $result[0]['total'];
+
+						/************12************/
+						$hs = $selected_date . ' 12:00:00';
+						$he = $selected_date . ' 12:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h12 = $result[0]['total'];
+
+						/************13************/
+						$hs = $selected_date . ' 13:00:00';
+						$he = $selected_date . ' 13:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h13 = $result[0]['total'];
+
+						/************14************/
+						$hs = $selected_date . ' 14:00:00';
+						$he = $selected_date . ' 14:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h14 = $result[0]['total'];
+
+						/************15************/
+						$hs = $selected_date . ' 15:00:00';
+						$he = $selected_date . ' 15:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h15 = $result[0]['total'];
+
+						/************16************/
+						$hs = $selected_date . ' 16:00:00';
+						$he = $selected_date . ' 16:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h16 = $result[0]['total'];
+
+						/************17************/
+						$hs = $selected_date . ' 17:00:00';
+						$he = $selected_date . ' 17:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h17 = $result[0]['total'];
+
+						/************18************/
+						$hs = $selected_date . ' 18:00:00';
+						$he = $selected_date . ' 18:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h18 = $result[0]['total'];
+
+						/************19************/
+						$hs = $selected_date . ' 19:00:00';
+						$he = $selected_date . ' 19:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h19 = $result[0]['total'];
+
+						/************20************/
+						$hs = $selected_date . ' 20:00:00';
+						$he = $selected_date . ' 20:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h20 = $result[0]['total'];
+
+						/************21************/
+						$hs = $selected_date . ' 21:00:00';
+						$he = $selected_date . ' 21:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h21 = $result[0]['total'];
+
+						/************22************/
+						$hs = $selected_date . ' 22:00:00';
+						$he = $selected_date . ' 22:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h22 = $result[0]['total'];
+
+						/************23************/
+						$hs = $selected_date . ' 23:00:00';
+						$he = $selected_date . ' 23:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h23 = $result[0]['total'];
+
+
+						/************24************/
+						$hs = $selected_date . ' 24:00:00';
+						$he = $selected_date . ' 24:59:59';
+
+						$guest->_get("SELECT count(*) AS total FROM event_entries WHERE event_id = '$event_id' AND  created_date BETWEEN '$hs' and '$he'", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$h24 = $result[0]['total'];
+
+						echo json_encode(array("h1"=>$h1,"h2"=>$h23,"h3"=>$h3,"h4"=>$h4,"h5"=>$h5,"h6"=>$h6,"h7"=>$h7,"h8"=>$h8,"h9"=>$h9,"h10"=>$h10,"h11"=>$h11,"h12"=>$h12,"h13"=>$h13,"h14"=>$h14,"h15"=>$h15,"h16"=>$h16,"h17"=>$h17,"h18"=>$h18,"h19"=>$h19,"h20"=>$h20,"h21"=>$h21,"h22"=>$h22,"h23"=>$h23,"h24"=>$h24,));
+
+
+
 
 					break;
 
