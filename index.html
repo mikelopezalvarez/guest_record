@@ -36,7 +36,7 @@
       <!-- The justified navigation menu is meant for single line per list item.
            Multiple lines will require custom code not provided by Bootstrap. -->
       <div class="masthead">
-        <h3 class="text-muted">Your Company</h3>
+        <h3 class="text-muted" id="logo_text"></h3>
         <nav>
           <ul class="nav nav-justified" id="menu">
             
@@ -82,12 +82,18 @@
     <!--<script src="js/ie10-viewport-bug-workaround.js"></script>-->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/appearance.js"></script>
     <script src="js/menu.js"></script>
 
     <script>
      $(function() {
       //Init Menu 
       init_menu('home');
+
+      //Init Appearance
+      init_appearance();
+
+
     });
     </script>
   </body>

@@ -14,9 +14,11 @@
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="js/plugins/ColorpickerMaster/dist/css/bootstrap-colorpicker.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <link href="css/justified-nav.css" rel="stylesheet">
+    <link rel="stylesheet" href="js/plugins/ValidationEngine/css/validationEngine.jquery.css" type="text/css"/>
 
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
@@ -36,7 +38,7 @@
       <!-- The justified navigation menu is meant for single line per list item.
            Multiple lines will require custom code not provided by Bootstrap. -->
       <div class="masthead">
-        <h3 class="text-muted">Your Company</h3>
+        <h3 class="text-muted" id="logo_text"></h3>
         <nav>
           <ul class="nav nav-justified" id="menu">
             
@@ -46,6 +48,19 @@
       <br />
 
         <h4>Setting</h4>
+        <div class="row">
+          <div class="col-md-4 col-lg-4">
+            <div class="input-group">
+              <input type="text" class="form-control" placeholder="Search for..." id="txt_search">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button" id="btn_search">Search</button>
+              </span>
+            </div>
+          </div>
+          <div class="col-md-8 col-lg-8">
+            <img src="img/icons/add.png" width="35" style=" float: right; cursor: pointer;" id="add_user"/>
+          </div>
+        </div>
         
       <br />
       <div class="row">
@@ -55,17 +70,15 @@
 
             <!-- Nav tabs -->
             <ul class="nav nav-tabs" role="tablist">
-              <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Users</a></li>
+              <li role="presentation" class="tab-setting active" rel="home"><a href="#users" aria-controls="users" role="tab" data-toggle="tab">Users</a></li>
              
-              <li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>
+              <li role="presentation" class="tab-setting" rel="setting"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>
             </ul>
 
             <!-- Tab panes -->
             <div class="tab-content">
-              <div role="tabpanel" class="tab-pane active" id="home">...</div>
-              <div role="tabpanel" class="tab-pane" id="profile">...</div>
-              <div role="tabpanel" class="tab-pane" id="messages">...</div>
-              <div role="tabpanel" class="tab-pane" id="settings">...</div>
+              <div role="tabpanel" class="tab-pane active" id="users"></div>
+              <div role="tabpanel" class="tab-pane" id="settings"></div>
             </div>
 
           </div>
@@ -87,8 +100,14 @@
 
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <!--<script src="js/ie10-viewport-bug-workaround.js"></script>-->
+    <!-- Plugins -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/plugins/ValidationEngine/js/languages/jquery.validationEngine-en.js"></script>
+    <script src="js/plugins/ValidationEngine/js/jquery.validationEngine.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/plugins/ColorpickerMaster/dist/js/bootstrap-colorpicker.js"></script>
+    <!-- Configuration Page -->
+    <script src="js/appearance.js"></script>
     <script src="js/menu.js"></script>
     <script src="js/setting.js"></script>
     <script>
@@ -98,8 +117,14 @@
         $(this).tab('show')
       })
 
+      //Init Appearance
+      init_appearance();
+
       //Init Menu 
       init_menu('setting');
+
+      //Init Setting Functionality
+      init_setting();
     
     });
     
@@ -107,3 +132,22 @@
     </script>
   </body>
 </html>
+
+
+<div class="modal fade" id="myModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Modal title</h4>
+      </div>
+      <div class="modal-body">
+       
+      </div>
+      <!--<div class="modal-footer">
+       
+      </div>-->
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+

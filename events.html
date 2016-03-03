@@ -41,7 +41,7 @@
       <!-- The justified navigation menu is meant for single line per list item.
            Multiple lines will require custom code not provided by Bootstrap. -->
       <div class="masthead">
-        <h3 class="text-muted">Your Company</h3>
+        <h3 class="text-muted" id="logo_text"></h3>
         <nav>
           <ul class="nav nav-justified" id="menu">
             
@@ -90,12 +90,16 @@
     <script src="js/plugins/JqueryDatePicker/jquery-ui.js"></script>
 
     <!-- Configuration Page -->
+    <script src="js/appearance.js"></script>
     <script src="js/menu.js"></script>
     <script src="js/events.js"></script>
    
     <script>
     $(function() {
       $('#accordion').collapse();
+
+      //Init Appearance
+      init_appearance();
 
       //Init Menu 
       init_menu('events');

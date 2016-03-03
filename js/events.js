@@ -7,6 +7,8 @@ var event_info = null; //Get event info Obj
 var search_arr = null; //Storage search
 var basic_analytics = null; //Storage Basic Analytics
 var LineChart = null;
+var refreshStatics = null; //Automatic Refresh
+var refreshChart = null; //Automatic Refresh chart
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
@@ -23,12 +25,6 @@ function init_event(){
     
   });
 
-   //Init add event dialog
-  $("#add_event").click(function(){
-
-    init_add_event_dialog();
-    
-  });
 
   //Load header search
   load_header_search();
@@ -55,6 +51,13 @@ function load_header_search(){
           '</div>';
 
   $("#header-content").html(html);
+
+   //Init add event dialog
+  $("#add_event").click(function(){
+
+    init_add_event_dialog();
+    
+  });
 }
 
 
@@ -431,6 +434,7 @@ function init_display_form(event_id, title){
     var mode = ($(document).fullScreen() ? "on" : "off");
     if(mode == "off"){
       init_event();
+      clearInterval(refreshStatics);
     }
   });
 
@@ -464,7 +468,7 @@ function init_display_form(event_id, title){
   //Load first time analytics bar
   display_percent_attended(event_id);
   //Reload Analytics Bar each 5s
-  setInterval(display_percent_attended, 5000, event_id);
+  refreshStatics = setInterval(display_percent_attended, 5000, event_id);
 
 
 }
@@ -652,7 +656,7 @@ function init_full_analytics_events(event_id){
       keyboard: false
     });
     //Dialog title
-    $(".modal-title").html('<img src="img/icons/powerpoint.png" width="50"> Analytics Event')
+    $(".modal-title").html('<img src="img/icons/powerpoint.png" width="50"> Statistics Event')
     //Resize modal
     $('.modal-dialog').css("width","60%");
     //Create form
@@ -739,12 +743,18 @@ function init_chart_event(event_id){
         });
 
 
-        load_chart_event(event_id);
 
         //When window resize call chart function
         $( window ).resize(function() {
           load_chart_event(event_id);
         });
+
+        //Call chart each 3 second
+        refreshChart = setInterval(load_chart_event, 3000, event_id);
+        //Clear interval when modal is close
+        $('#myModal').on('hidden.bs.modal', function (e) {
+          clearInterval(refreshChart);
+        })
 
 
 

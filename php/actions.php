@@ -1,6 +1,7 @@
 <?php 
 	//REQUIERE MIKE SQL CLASS
 	require_once"mikeSQL.php";
+	require_once"functions.php";
 
 	$functions = array(
 		"test", 						/*0*/
@@ -23,8 +24,17 @@
 		"get_chart_event_info",			/*17*/
 		"get_chart_attended_by_hour",	/*18*/
 		"get_min_max_date_of_event",	/*19*/
-		"get_count_event_all_hours"		/*20*/
-		
+		"get_count_event_all_hours",	/*20*/
+		"get_users",					/*21*/
+		"add_user",						/*22*/
+		"validate_exist_username",		/*23*/
+		"get_user_info_by_id",			/*24*/
+		"edit_user",					/*25*/
+		"del_user",						/*26*/
+		"get_settings",					/*27*/
+		"edit_settings",				/*28*/
+		"get_fields_searched",			/*29*/
+		"update_fields_search"			/*30*/
 		);
 			
 		if(isset($_GET['action']))
@@ -199,11 +209,14 @@
 
 										for($i = 0; $i < $countCol; $i++){
 											if($i < $countCol - 1){
-												$sql .= str_replace(' ', '_', $csvArr[0][$i]). " VARCHAR(50) NOT NULL, ";
-												$col .= str_replace(' ', '_', $csvArr[0][$i]) . ",";
+												$sql .= clear_string_spaces($csvArr[0][$i]). " VARCHAR(50) NOT NULL, ";
+												$col .= clear_string_spaces($csvArr[0][$i]) . ",";
+											}elseif($i == $countCol){
+												$sql .= clear_string_spaces($csvArr[0][$i]). " VARCHAR(50) NOT NULL )";
+												$col .= clear_string_spaces($csvArr[0][$i]);
 											}else{
-												$sql .= str_replace(' ', '_', $csvArr[0][$i]). " VARCHAR(50) NOT NULL )";
-												$col .= str_replace(' ', '_', $csvArr[0][$i]);
+												$sql .= clear_string_spaces($csvArr[0][$i]). " VARCHAR(50) NOT NULL )";
+												$col .= clear_string_spaces($csvArr[0][$i]);
 											}
 
 										}
@@ -228,9 +241,11 @@
 											$currentColq = "";
 											for($c = 0; $c < $countCol; $c++){
 												if($c < $countCol - 1){
-													$currentColq .= "'" .$csvArr[$i][$c]."',";
+													$currentColq .= "'" .clear_string($csvArr[$i][$c])."',";
+												}elseif($c == $countCol){
+													$currentColq .= "'" .clear_string($csvArr[$i][$c])."'";
 												}else{
-													$currentColq .= "'" .$csvArr[$i][$c]."'";
+													$currentColq .= "'" .clear_string($csvArr[$i][$c])."'";
 												}
 											}
 
@@ -336,8 +351,9 @@
 						$table_name = $result[0]['list_table_name'];
 
 						//GENERATE QUERY
-						$query = "SELECT l.row_id AS ID, $field_select IF(ee.event_id IS NULL,'No','Yes') AS Attended FROM $table_name l LEFT JOIN event_entries ee ON l.row_id = ee.row_id WHERE $field_where  ORDER BY l.row_id";
+						$query = "SELECT l.row_id AS ID, $field_select IF(ee.event_id IS NULL,'No','Yes') AS Attended FROM $table_name l LEFT JOIN event_entries ee ON l.row_id = ee.row_id AND ee.event_id = '$event_id' WHERE  $field_where  ORDER BY l.row_id";
 						$guest->_get($query);
+
 
 					break;
 
@@ -693,6 +709,151 @@
 
 
 					break;
+
+				case 21:
+
+						$guest = new mikeSQL();
+						if ($search == -1){
+							$guest->qry("SELECT user_id, fullname, username, created_date FROM users LIMIT ".$limit_rows);
+						}else{
+							$guest->qry("SELECT user_id, fullname, username, created_date FROM users WHERE fullname LIKE '%$search%' LIMIT ".$limit_rows);
+						}
+
+
+					break;
+				case 22:
+
+						$guest = new mikeSQL();
+						$password = md5($passw);
+						//INSERT USERS
+						$guest->_add("INSERT INTO users (fullname,username,passw,admin,created_date) VALUES('$fullname', '$username', '$password', '$admin', NOW())");
+
+
+					break;
+				case 23:
+
+						$guest = new mikeSQL();
+						$guest->qry("SELECT COUNT(username) AS qty FROM users WHERE username = '$username'");
+
+					break;
+				case 24:
+
+						$guest = new mikeSQL();
+						$guest->qry("SELECT user_id, fullname, username, admin FROM users WHERE user_id = '$user_id'");
+
+					break;
+				case 25:
+
+						if($change_pass == 1){
+							$guest = new mikeSQL();
+							$values = array("fullname"=> $fullname, "username"=> $username, "passw"=> md5($passw), "admin"=> $admin);
+							$guest->update("users", $values, 'user_id', $user_id);
+						}else{
+							$guest = new mikeSQL();
+							$values = array("fullname"=> $fullname, "username"=> $username, "admin"=> $admin);
+							$guest->update("users", $values, 'user_id', $user_id);
+						}
+
+					break;
+				case 26:
+
+						$guest = new mikeSQL();
+						$guest->_del("DELETE FROM users WHERE user_id = '$user_id'");
+
+					break;
+				case 27:
+
+						$guest = new mikeSQL();
+						$guest->qry("SELECT * FROM settings");
+
+					break;
+				case 28:
+
+						
+
+						if($image_or_text == 1){
+
+							if($_FILES){
+
+								$guest = new mikeSQL();
+								$guest->_get("SELECT * FROM settings", 0);
+								//RESULT OF BEFORE QUERY
+								$result = $guest->rows;
+
+
+								$allowed =  array('gif','GIF','jpg','JPG','jpeg','JPEG','png','PNG');//GET ACCEPTED EXTENSION FILE
+								$filename = $_FILES['image']['name'];//GET FILENAME
+								$ext = pathinfo($filename, PATHINFO_EXTENSION);//GET EXTENSION FILE
+								$path = "../img/";//PATH
+								$upload_file = $path . basename($_FILES['image']['name']);//UPLOAD PATH
+								//VALIDATE EXTENSION
+								if(!in_array($ext,$allowed) ) {
+								    
+								    json_encode(array("success"=> 0));
+								   
+
+								}else{
+									if (move_uploaded_file($_FILES["image"]["tmp_name"], $upload_file)) {
+								        json_encode(array("success"=> true));
+								        //DELETE PREVIOUS FILE
+								        unlink('../img/'.$result[0]["logo_url"]);
+								        //EDIT SETTINGS INFO
+								        $guest = new mikeSQL();
+										$values = array("logo_image_or_text"=> $image_or_text, "logo_url"=> $_FILES['image']['name'], "logo_text"=> $logo_text, "logo_text_color"=> $logo_text_color, "bg_color"=> $bg_color, "font_color"=> $font_color);
+										$guest->update("settings", $values, 'setting_id', '1');
+
+
+
+								    } else {
+								        json_encode(array("success"=> 0));
+								    }
+
+
+								}
+							}else{
+								$guest = new mikeSQL();
+								$values = array("logo_image_or_text"=> $image_or_text, "logo_text"=> $logo_text, "logo_text_color"=> $logo_text_color, "bg_color"=> $bg_color, "font_color"=> $font_color);
+									$guest->update("settings", $values, 'setting_id', '1');
+									json_encode(array("success"=> true));
+
+							}
+
+
+
+						}else{
+
+							$guest = new mikeSQL();
+							$values = array("logo_image_or_text"=> $image_or_text, "logo_text"=> $logo_text, "logo_text_color"=> $logo_text_color, "bg_color"=> $bg_color, "font_color"=> $font_color);
+									$guest->update("settings", $values, 'setting_id', '1');
+									json_encode(array("success"=> true));
+
+						}
+
+						
+
+					break;
+				case 29:
+
+						$guest = new mikeSQL();
+						$guest->qry("SELECT list_id, field_name FROM fields_search WHERE list_id = '$list_id'");
+
+					break;
+				case 30:
+
+						$guest = new mikeSQL();
+						$guest->_del("DELETE FROM fields_search WHERE list_id = '$list_id'", 0);
+
+						$qty = count($fields);
+						$sql = '';
+
+						for($i = 0; $i < $qty; $i++){
+							$sql .= "INSERT INTO fields_search (list_id,field_name) VALUES('$list_id','".$fields[$i]."');";
+						}
+
+						$guest = new mikeSQL();
+						$guest->multiple($sql);
+					break;
+
 
 
 				}
