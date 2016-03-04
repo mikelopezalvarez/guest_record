@@ -34,7 +34,9 @@
 		"get_settings",					/*27*/
 		"edit_settings",				/*28*/
 		"get_fields_searched",			/*29*/
-		"update_fields_search"			/*30*/
+		"update_fields_search",			/*30*/
+		"edit_list",					/*31*/
+		"del_list"						/*32*/
 		);
 			
 		if(isset($_GET['action']))
@@ -852,6 +854,30 @@
 
 						$guest = new mikeSQL();
 						$guest->multiple($sql);
+					break;
+				case 31:
+
+						$guest = new mikeSQL();
+						//Update list
+						$sql = "UPDATE lists SET list_name='$list_name', list_table_name='$list_table_name' WHERE list_id='$list_id'; ";
+						//Update table name
+						$sql .= "RENAME TABLE $old_list_table_name TO $list_table_name;";
+						$guest->multiple($sql);
+
+					break;
+				case 32:
+
+						$guest = new mikeSQL();
+						$guest->_get("SELECT count(*) AS total FROM event_list WHERE list_id = '$list_id'", 0);
+						$result = $guest->rows;
+
+						if($result[0]["total"] > 0){
+							echo json_encode(array('success'=> false)); 
+						}else{
+							$guest = new mikeSQL();
+							$guest->_del("DELETE FROM lists WHERE list_id = '$list_id'");
+						}
+
 					break;
 
 

@@ -67,10 +67,10 @@ function load_list_list(){
                         '<label class="btn btn-default btn-xs btn_view_table" title="View Records"  rel="'+response[i]["list_id"]+'">' +
                          '<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>' +
                         '</label>' +
-                        '<label class="btn btn-default btn-xs btn_edit_event" rel="'+response[i]["list_id"]+'" title="Edit">' +
+                        '<label class="btn btn-default btn-xs btn_edit_list" rel="'+response[i]["list_id"]+'" title="Edit">' +
                           '<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>' +
                        ' </label>' +
-                        '<label class="btn btn-default btn-xs btn_delete_event" rel="'+response[i]["list_id"]+'" title="Delete">' +
+                        '<label class="btn btn-default btn-xs btn_delete_list" rel="'+response[i]["list_id"]+'" title="Delete">' +
                           '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>' +
                         '</label>' +
                        
@@ -125,13 +125,13 @@ function program_events(){
   });
 
   //Init delete event
-  $(".btn_delete_event").click(function(){
-    delete_event($(this).attr("rel"));
+  $(".btn_delete_list").click(function(){
+    delete_list($(this).attr("rel"));
   });
 
   //Init edit event
-  $(".btn_edit_event").click(function(){
-    get_info_to_edit_event($(this).attr("rel"));
+  $(".btn_edit_list").click(function(){
+    get_info_to_edit_list($(this).attr("rel"));
   });
   //Init view table
   $(".btn_view_table").click(function(){
@@ -841,3 +841,131 @@ Array.prototype.multisplice = function(){
     }        
 }
 
+
+
+function get_info_to_edit_list(list_id){
+  //Send params to add event
+  $.ajax({
+    type: "POST",
+    url: 'php/actions.php',
+    dataType : 'JSON',
+    data: { 
+      action: 'get_list_info_by_id', 
+      list_id: list_id
+    },
+    success: function(response){
+      //Storage list info obj
+      list_info = response;
+      console.log(response)
+      //Init edit list dialog
+      init_edit_list_dialog();
+    }
+  });
+
+}
+
+
+
+function init_edit_list_dialog(){
+  //Open dialog
+    $('#myModal').modal({
+      keyboard: false
+    });
+    //Dialog title
+    $(".modal-title").html('<img src="img/icons/excel.png" width="50"> Edit List')
+    //Create form
+    var form = '<form id="form_edit_list">'+
+    '<div id="form_error"></div>'+
+      '<div class="form-group">'+
+        '<label for="">Name</label>'+
+        '<input type="text" class="validate[required,custom[onlyLetterSp]] form-control" id="txt_list_name" placeholder="Name of List" value="'+list_info[0]["list_name"]+'">'+
+      '</div>'+
+      '<div class="form-group">'+
+        '<label for="">Table Name</label>'+
+        '<input class="validate[required] form-control" id="txt_list_table_name" type="text" placeholder="" value="'+list_info[0]["list_table_name"]+'"  disabled>'+
+      '</div>'+
+      
+      '<button type="submit" class="btn btn-default">Edit</button>'+
+    '</form>';
+
+    //Load dialog wiht form
+    $(".modal-body").html(form);
+
+    //Converting Name to Table Name in real time
+    typing_table_name();
+
+    //Init Validation Engine
+    $("#form_edit_list").validationEngine();
+
+    //When submit add event
+    $("#form_edit_list").submit(function(event){
+      //Prevent Default
+      event.preventDefault();
+      //Call add event function
+      edit_list();
+    });
+}
+
+
+
+
+function edit_list(){
+
+  $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action: 'edit_list',
+          list_id: list_info[0]["list_id"],
+          list_name: $("#txt_list_name").val(),
+          list_table_name: $("#txt_list_table_name").val(),
+          old_list_table_name: list_info[0]["list_table_name"]
+        },
+        success: function(response){
+          if(response.success){
+            //Close dialog
+            $('#myModal').modal('hide');
+            //Reload event list
+            load_list_list();
+          }
+        }
+    });
+
+
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+Delete List by List ID
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+function delete_list(list_id){
+  var del = confirm("Do you want delete this list?");
+    
+    if (del == true) {
+        
+      //Send params to add event
+      $.ajax({
+        type: "POST",
+        url: 'php/actions.php',
+        dataType : 'JSON',
+        data: { 
+          action: 'del_list', 
+          list_id: list_id
+        },
+        success: function(response){
+          console.log(response.success)
+          if(response.success == false){
+            
+            alert("This list is linked with a event. To delete this list you must delete the events.")
+
+          }else{
+
+            //Reload list
+            load_list_list();
+
+          }
+        }
+      });
+
+    }
+}
