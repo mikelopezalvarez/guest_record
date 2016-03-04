@@ -37,11 +37,23 @@
            Multiple lines will require custom code not provided by Bootstrap. -->
       <div class="masthead">
         <h3 class="text-muted" id="logo_text"></h3>
-        <nav>
-          <ul class="nav nav-justified" id="menu">
-            
-          </ul>
-        </nav>
+        <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav" id="menu">
+             
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> <span id="login_fullname"></spam> <span class="caret"></span></a>
+                <ul class="dropdown-menu" id="right-menu">
+                </ul>
+              </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div><!--/.container-fluid -->
+      </nav>
       </div>
 
       <!-- Jumbotron -->
@@ -82,11 +94,15 @@
     <!--<script src="js/ie10-viewport-bug-workaround.js"></script>-->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/session.js"></script>
     <script src="js/appearance.js"></script>
     <script src="js/menu.js"></script>
 
     <script>
      $(function() {
+      //Verify Login
+      init_session();
+
       //Init Menu 
       init_menu('home');
 

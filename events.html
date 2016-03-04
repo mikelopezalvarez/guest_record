@@ -42,11 +42,23 @@
            Multiple lines will require custom code not provided by Bootstrap. -->
       <div class="masthead">
         <h3 class="text-muted" id="logo_text"></h3>
-        <nav>
-          <ul class="nav nav-justified" id="menu">
-            
-          </ul>
-        </nav>
+        <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav" id="menu">
+             
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> <span id="login_fullname"></spam> <span class="caret"></span></a>
+                <ul class="dropdown-menu" id="right-menu">
+                </ul>
+              </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div><!--/.container-fluid -->
+      </nav>
       </div>
       <br />
 
@@ -90,6 +102,7 @@
     <script src="js/plugins/JqueryDatePicker/jquery-ui.js"></script>
 
     <!-- Configuration Page -->
+    <script src="js/session.js"></script>
     <script src="js/appearance.js"></script>
     <script src="js/menu.js"></script>
     <script src="js/events.js"></script>
@@ -97,6 +110,9 @@
     <script>
     $(function() {
       $('#accordion').collapse();
+      
+      //Verify Login
+      init_session();
 
       //Init Appearance
       init_appearance();

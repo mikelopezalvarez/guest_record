@@ -1,5 +1,11 @@
 <?php
 
+session_start();
+
+if(isset($_SESSION["user_id"])){
+	$user_id = $_SESSION["user_id"];
+}
+
 function clear_string($s) {
 	$s = preg_replace("[áàâãª]","a",$s);
 	$s = preg_replace("[ÁÀÂÃ]","A",$s);

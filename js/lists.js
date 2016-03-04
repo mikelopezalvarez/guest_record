@@ -953,7 +953,7 @@ function delete_list(list_id){
           list_id: list_id
         },
         success: function(response){
-          console.log(response.success)
+
           if(response.success == false){
             
             alert("This list is linked with a event. To delete this list you must delete the events.")

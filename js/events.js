@@ -699,8 +699,8 @@ function init_full_analytics_events(event_id){
           '</dl></div><div class="col-lg-6"><dl class="dl-horizontal">'+
             '<dt>Percentage:</dt>'+
             '<dd>'+result.perc+'%</dd>'+
-            '<dt>Users Work:</dt>'+
-            '<dd>'+result.perc+'</dd>'+
+            '<dt>Users Working:</dt>'+
+            '<dd>'+result.users_working+'</dd>'+
           '</dl></div></div>');
 
         init_chart_event(event_id);

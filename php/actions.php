@@ -94,10 +94,9 @@
 
 				case 2:
 
-
 						$guest = new mikeSQL();
 						//INSERT EVENTS
-						$guest->_add("INSERT INTO events (event_name,event_desc,created_by,created_date) VALUES('$event_name', '$event_desc', 1, NOW())", 0);
+						$guest->_add("INSERT INTO events (event_name,event_desc,created_by,created_date) VALUES('$event_name', '$event_desc', '$user_id', NOW())", 0);
 						//GET LAST_ID
 						$event_id = $guest->last_id;
 						//INSERT EVENT_LIST
@@ -256,7 +255,7 @@
 										$list_total = $countRow - 1;
 										$new_list_table_name = 'list_'.$list_table_name;
 										//INSERT LISTS TABLES
-										$queries .= "INSERT INTO lists (list_name,list_table_name,file_name,list_total, created_by,created_date,active) VALUES('$list_name','$new_list_table_name','$newfilename','$list_total',1,NOW(),1);";
+										$queries .= "INSERT INTO lists (list_name,list_table_name,file_name,list_total, created_by,created_date,active) VALUES('$list_name','$new_list_table_name','$newfilename','$list_total','$user_id',NOW(),1);";
 
 										//echo $queries;
 										$guest->multiple($queries);
@@ -364,7 +363,7 @@
 						$guest = new mikeSQL();
 						if($att == "No"){
 							//INSERT EVENTS
-							$guest->_add("INSERT INTO event_entries (row_id,event_id,created_by,created_date) VALUES('$row_id', '$event_id', 1, NOW())");
+							$guest->_add("INSERT INTO event_entries (row_id,event_id,created_by,created_date) VALUES('$row_id', '$event_id', '$user_id', NOW())");
 
 						}else{
 							$guest->_del("DELETE FROM event_entries WHERE row_id = '$row_id' AND event_id = '$event_id'");
@@ -400,7 +399,14 @@
 						$calc = $total_attended * 100;
 						$perc = $calc / $total_rows;
 
-						echo json_encode(array("success"=>true,"total_rows"=>$total_rows,"total_attended"=>$total_attended,"perc"=>round($perc)));
+						//GET TOTAL USERS WORKING
+						$guest->_get("SELECT COUNT(DISTINCT created_by) AS total_rows FROM event_entries WHERE event_id = '$event_id' ", 0);
+						//RESULT OF BEFORE QUERY
+						$result = $guest->rows;
+
+						$total_users = $result[0]["total_rows"];
+
+						echo json_encode(array("success"=>true,"total_rows"=>$total_rows,"total_attended"=>$total_attended,"perc"=>round($perc), 'users_working'=>$total_users));
 
 
 					break;
