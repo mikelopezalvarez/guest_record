@@ -151,7 +151,7 @@
 						}else{
 
 							// 2. UPLOAD CSV
-							if ($_FILES["file"]["size"] > 500000) {
+							if ($_FILES["file"]["size"] > 5000000000) {
 							    echo json_encode(array('success'=> false, 'error'=> 'The file size exceed the limit.')); 
 							}else{
 
@@ -210,13 +210,13 @@
 
 										for($i = 0; $i < $countCol; $i++){
 											if($i < $countCol - 1){
-												$sql .= clear_string_spaces($csvArr[0][$i]). " VARCHAR(50) NOT NULL, ";
+												$sql .= clear_string_spaces($csvArr[0][$i]). " VARCHAR(25) NOT NULL, ";
 												$col .= clear_string_spaces($csvArr[0][$i]) . ",";
 											}elseif($i == $countCol){
-												$sql .= clear_string_spaces($csvArr[0][$i]). " VARCHAR(50) NOT NULL )";
+												$sql .= clear_string_spaces($csvArr[0][$i]). " VARCHAR(25) NOT NULL )";
 												$col .= clear_string_spaces($csvArr[0][$i]);
 											}else{
-												$sql .= clear_string_spaces($csvArr[0][$i]). " VARCHAR(50) NOT NULL )";
+												$sql .= clear_string_spaces($csvArr[0][$i]). " VARCHAR(25) NOT NULL )";
 												$col .= clear_string_spaces($csvArr[0][$i]);
 											}
 
@@ -259,6 +259,7 @@
 
 										//echo $queries;
 										$guest->multiple($queries);
+
 
 
 
@@ -316,7 +317,8 @@
 						$guest->_get("SELECT * FROM event_list WHERE event_id = '$event_id'", 0);
 						//RESULT OF BEFORE QUERY
 						$result = $guest->rows;
-
+						//echo $result[0]['list_id'];
+						
 						//GET FIELDS SEARCH FOR THIS EVENT
 						$guest->_get("SELECT * FROM fields_search WHERE list_id = '".$result[0]['list_id']."'", 0);
 						$list_id = $result[0]['list_id']; //GET LIST ID
@@ -334,6 +336,7 @@
 							$field_select .= " l.".$result[$i]['field_name']. ", "; 
 							
 						}
+
 						//GET WHERE OF QUERY
 						$field_where = "1 = 1 AND ";
 						for ($i = 0; $i < $qty_fields; $i++){
@@ -344,6 +347,7 @@
 							}
 						}
 
+
 						//GET TABLE NAME
 						$guest->_get("SELECT * FROM lists WHERE list_id = '".$list_id."'", 0);
 						//RESULT OF BEFORE QUERY
@@ -351,11 +355,12 @@
 						//STORAGE TABLE NAME
 						$table_name = $result[0]['list_table_name'];
 
+
 						//GENERATE QUERY
-						$query = "SELECT l.row_id AS ID, $field_select IF(ee.event_id IS NULL,'No','Yes') AS Attended FROM $table_name l LEFT JOIN event_entries ee ON l.row_id = ee.row_id AND ee.event_id = '$event_id' WHERE  $field_where  ORDER BY l.row_id";
+						$query = "SELECT l.row_id AS ID, $field_select IF(ee.event_id IS NULL,'No','Yes') AS Attended FROM $table_name l LEFT JOIN event_entries ee ON l.row_id = ee.row_id AND ee.event_id = '$event_id' WHERE  $field_where  ORDER BY l.row_id LIMIT 10";
+
 						$guest->_get($query);
-
-
+		
 					break;
 
 				case 15:
@@ -371,6 +376,7 @@
 
 					break;
 				case 16:
+				
 						$guest = new mikeSQL();
 						$guest->_get("SELECT * FROM event_list WHERE event_id = '$event_id'", 0);
 						//RESULT OF BEFORE QUERY
@@ -407,7 +413,6 @@
 						$total_users = $result[0]["total_rows"];
 
 						echo json_encode(array("success"=>true,"total_rows"=>$total_rows,"total_attended"=>$total_attended,"perc"=>round($perc), 'users_working'=>$total_users));
-
 
 					break;
 				case 17:

@@ -8,14 +8,14 @@ Global Variables List
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 Init List Page
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-function init_login(){
+function init_installation(){
 
 
   //Init Validation Engine
-    $("#form_login").validationEngine();
+    $("#form_install").validationEngine();
 
     //When submit add event
-    $("#form_login").submit(function(event){
+    $("#form_install").submit(function(event){
       //Prevent Default
       event.preventDefault();
       //Call add event function
@@ -29,17 +29,24 @@ function init_login(){
 Load List into Content
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function login(){
+
   //Get form status
-  var status = $("#form_login").validationEngine('validate');
+  var status = $("#form_install").validationEngine('validate');
 
   if(status == true){
 
+
     $.ajax({
       type: "POST",
-      url: 'php/o.actions.php',
+      url: 'php/install.php',
       dataType : 'JSON',
       data: { 
-        action: 'login', 
+        action: 'install', 
+        hostname: $("#txt_host_name").val(),
+        database_name: $("#txt_database_name").val(),
+        database_username: $("#txt_database_username").val(),
+        database_password: $("#txt_database_password").val(),
+        fullname: $("#txt_fullname").val(),
         username: $("#txt_username").val(),
         password: $("#txt_password").val()
       },
@@ -47,7 +54,7 @@ function login(){
 
         if(response.success == false){
               
-              alert("The username or password is incorrect.")
+              alert(response.err);
 
         }else{
 

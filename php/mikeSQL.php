@@ -1,4 +1,5 @@
 <?php
+require_once"parameters.php";
 /**
  * Mysql Easy Control 1.0
  *
@@ -26,10 +27,10 @@
 
 class mikeSQL{
 	
-	private $host = 'localhost';
-	private $user = 'root';
-	private $pass = '';
-	private $db = 'guest_register';
+	private $host = DB_HOSTNAME;
+	private $user = DB_USERNAME;
+	private $pass = DB_PASS;
+	private $db = DB_DATABASE;
 
 	private $mysqli;
 	private $sql; 

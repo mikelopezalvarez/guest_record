@@ -6,7 +6,8 @@
 	$functions = array(
 		"login", 						/*0*/
 		"logout",						/*1*/
-		"get_login"						/*2*/
+		"get_login",					/*2*/
+		"install"						/*3*/
 		
 		);
 			
@@ -68,6 +69,17 @@
 						}else{
 							echo json_encode(array('success'=> false));
 						}
+
+					break;
+				case 3:
+						
+						//VERIFY IF DATABASE, USERNAME AND PASSWORD EXIST
+
+						//CREATE ALL TABLES INTO DATABASE
+
+						//CREATE FILE OF CONNEXION 
+
+						//DELETE ALL INSTALLATION FILES
 
 					break;
 
