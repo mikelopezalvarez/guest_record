@@ -114,6 +114,14 @@
 								INSERT INTO `users` (`fullname`, `username`, `passw`, `admin`, `created_date`) VALUES
 								('$fullname', '$username', '$passw', 1, NOW());
 
+								CREATE TABLE IF NOT EXISTS `event_entries` (
+								  `row_id` int(11) NOT NULL,
+								  `event_id` int(11) NOT NULL,
+								  `created_by` int(11) DEFAULT NULL,
+								  `created_date` datetime DEFAULT NULL
+								) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+
 
 								ALTER TABLE `event_list`
 								  ADD CONSTRAINT `fk_event_list_events` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE,
