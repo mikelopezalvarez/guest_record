@@ -151,9 +151,9 @@
 						}else{
 
 							// 2. UPLOAD CSV
-							if ($_FILES["file"]["size"] > 5000000000) {
-							    echo json_encode(array('success'=> false, 'error'=> 'The file size exceed the limit.')); 
-							}else{
+							// if ($_FILES["file"]["size"] > 5000000000) {
+							//     echo json_encode(array('success'=> false, 'error'=> 'The file size exceed the limit.')); 
+							// }else{
 
 								$allowed =  array('csv');
 								$filename = $_FILES['file']['name'];
@@ -266,7 +266,7 @@
 
 									}
 								}//File Extension
-							}//File size
+							//}//File size
 						}//Else table exist
 
 
