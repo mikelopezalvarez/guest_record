@@ -594,9 +594,15 @@ function register_guest(row_id,event_id,att){
           att       : att
         },
         success: function(response){
-          search_in_list(event_id);
+          //search_in_list(event_id);
+
+          $("#txt_search").val('').focus();
+          $("#table-content").empty();
         }
       });
+
+
+
   }
 
 }
