@@ -573,15 +573,7 @@ Register Guest
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 function register_guest(row_id,event_id,att){
 
-  if(att == 'No'){
-    var msg = 'Do you want to register this guest?'
-  }else{
-    var msg = 'Do you want to remove the assistance of this guest?'
-  }
-
-  var register = confirm(msg);
-    
-  if (register == true) {
+  
     //Send params to add event
     $.ajax({
         type: "POST",
@@ -594,7 +586,7 @@ function register_guest(row_id,event_id,att){
           att       : att
         },
         success: function(response){
-          //search_in_list(event_id);
+          search_in_list(event_id);
 
           $("#txt_search").val('').focus();
           $("#table-content").empty();
@@ -602,8 +594,6 @@ function register_guest(row_id,event_id,att){
       });
 
 
-
-  }
 
 }
 

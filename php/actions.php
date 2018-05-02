@@ -314,7 +314,7 @@
 					break;
 				case 14:
 
-					if($search != ''){
+					//if($search != ''){
 						$guest = new mikeSQL();
 						$guest->_get("SELECT * FROM event_list WHERE event_id = '$event_id'", 0);
 						//RESULT OF BEFORE QUERY
@@ -362,7 +362,7 @@
 						$query = "SELECT l.row_id AS ID, $field_select IF(ee.event_id IS NULL,'No','Yes') AS Attended FROM $table_name l LEFT JOIN event_entries ee ON l.row_id = ee.row_id AND ee.event_id = '$event_id' WHERE  $field_where  ORDER BY l.row_id LIMIT 10";
 
 						$guest->_get($query);
-					}
+					//}
 		
 					break;
 
